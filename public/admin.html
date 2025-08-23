@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterCredits Admin Panel</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border: var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .admin-tab {
+            padding: 1rem 2rem;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-tab.active {
+            border-bottom-color: var(--gold-color);
+            color: var(--gold-color);
+        }
+        
+        .admin-panel {
+            display: none;
+        }
+        
+        .admin-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--gold-color);
+            display: block;
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            opacity: 0.8;
+        }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-table th {
+            background: var(--accent-color);
+            color: var(--gold-color);
+            font-weight: bold;
+        }
+        
+        .admin-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .admin-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-btn.primary {
+            background: var(--gold-color);
+            color: var(--text-dark);
+        }
+        
+        .admin-btn.danger {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .admin-btn.success {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .admin-form {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        
+        .form-row label {
+            min-width: 150px;
+            font-weight: bold;
+            color: var(--gold-color);
+        }
+        
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-section">
+                <img src="/images/logo.png" alt="MasterCredits" class="logo">
+                <h1>MasterCredits Admin</h1>
+            </div>
+            <div class="user-info">
+                <span>Admin Panel</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="admin-container">
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="showAdminPanel('dashboard')">Dashboard</button>
+                <button class="admin-tab" onclick="showAdminPanel('users')">Users</button>
+                <button class="admin-tab" onclick="showAdminPanel('games')">Game Stats</button>
+                <button class="admin-tab" onclick="showAdminPanel('chat')">Chat Logs</button>
+                <button class="admin-tab" onclick="showAdminPanel('settings')">Settings</button>
+            </div>
+
+            <div id="dashboard-panel" class="admin-panel active">
+                <h2>📊 Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span id="totalUsers" class="stat-value">0</span>
+                        <span class="stat-label">Total Users</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="activeUsers" class="stat-value">0</span>
+                        <span class="stat-label">Active Today</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="totalMC" class="stat-value">0</span>
+                        <span class="stat-label">Total MC in System</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="gamesPlayed" class="stat-value">0</span>
+                        <span class="stat-label">Games Played Today</span>
+                    </div>
+                </div>
+                
+                <h3>📈 Recent Activity</h3>
+                <table id="recentActivity" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="users-panel" class="admin-panel">
+                <h2>👥 User Management</h2>
+                <div class="admin-form">
+                    <h3>🔍 Search Users</h3>
+                    <div class="form-row">
+                        <label>Username:</label>
+                        <input type="text" id="userSearch" placeholder="Enter username...">
+                        <button class="admin-btn primary" onclick="searchUsers()">Search</button>
+                    </div>
+                </div>
+                
+                <table id="usersTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Level</th>
+                            <th>MC Balance</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="games-panel" class="admin-panel">
+                <h2>🎮 Game Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span id="blackjackGames" class="stat-value">0</span>
+                        <span class="stat-label">Blackjack Games</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="coinflipGames" class="stat-value">0</span>
+                        <span class="stat-label">Coinflip Games</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="starboundGames" class="stat-value">0</span>
+                        <span class="stat-label">Starbound Games</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="totalPayout" class="stat-value">0</span>
+                        <span class="stat-label">Total Payouts</span>
+                    </div>
+                </div>
+                
+                <table id="gameStatsTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Game Type</th>
+                            <th>Total Games</th>
+                            <th>Total Bet</th>
+                            <th>Total Payout</th>
+                            <th>House Edge</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="chat-panel" class="admin-panel">
+                <h2>💬 Chat Management</h2>
+                <div class="admin-form">
+                    <h3>📝 Recent Chat Messages</h3>
+                    <button class="admin-btn primary" onclick="loadChatLogs()">Refresh Chat</button>
+                    <button class="admin-btn danger" onclick="clearChat()">Clear All Messages</button>
+                </div>
+                
+                <table id="chatTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Message</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="settings-panel" class="admin-panel">
+                <h2>⚙️ System Settings</h2>
+                
+                <div class="admin-form">
+                    <h3>🔒 Change Admin Password</h3>
+                    <div class="form-row">
+                        <label>Current Password:</label>
+                        <input type="password" id="currentPassword">
+                    </div>
+                    <div class="form-row">
+                        <label>New Password:</label>
+                        <input type="password" id="newPassword">
+                    </div>
+                    <div class="form-row">
+                        <label></label>
+                        <button class="admin-btn primary" onclick="changeAdminPassword()">Change Password</button>
+                    </div>
+                </div>
+                
+                <div class="admin-form">
+                    <h3>💾 Database Backup</h3>
+                    <div class="form-row">
+                        <label>Last Backup:</label>
+                        <span id="lastBackup">Never</span>
+                    </div>
+                    <div class="form-row">
+                        <label></label>
+                        <button class="admin-btn success" onclick="createBackup()">Create Backup Now</button>
+                    </div>
+                </div>
+                
+                <div class="admin-form">
+                    <h3>🚧 Maintenance Mode</h3>
+                    <div class="form-row">
+                        <label>Status:</label>
+                        <select id="maintenanceMode">
+                            <option value="0">Disabled</option>
+                            <option value="1">Enabled</option>
+                        </select>
+                        <button class="admin-btn primary" onclick="updateMaintenance()">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        class AdminPanel {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.checkAdminAuth();
+                this.loadDashboard();
+            }
+
+            checkAdminAuth() {
+                fetch('/api/admin/check', { credentials: 'include' })
+                    .then(response => {
+                        if (!response.ok) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(() => {
+                        window.location.href = '/';
+                    });
+            }
+
+            showAdminPanel(panelName) {
+                document.querySelectorAll('.admin-panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                document.querySelectorAll('.admin-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+
+                document.getElementById(`${panelName}-panel`).classList.add('active');
+                event.target.classList.add('active');
+
+                switch (panelName) {
+                    case 'dashboard':
+                        this.loadDashboard();
+                        break;
+                    case 'users':
+                        this.loadUsers();
+                        break;
+                    case 'games':
+                        this.loadGameStats();
+                        break;
+                    case 'chat':
+                        this.loadChatLogs();
+                        break;
+                    case 'settings':
+                        this.loadSettings();
+                        break;
+                }
+            }
+
+            async loadDashboard() {
+                try {
+                    const response = await fetch('/api/admin/dashboard', { credentials: 'include' });
+                    const data = await response.json();
+
+                    document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                    document.getElementById('activeUsers').textContent = data.activeUsers || 0;
+                    document.getElementById('totalMC').textContent = (data.totalMC || 0).toLocaleString();
+                    document.getElementById('gamesPlayed').textContent = data.gamesPlayed || 0;
+                } catch (error) {
+                    this.showNotification('Failed to load dashboard data', 'error');
+                }
+            }
+
+            async loadUsers() {
+                try {
+                    const response = await fetch('/api/admin/users', { credentials: 'include' });
+                    const users = await response.json();
+
+                    const tbody = document.querySelector('#usersTable tbody');
+                    tbody.innerHTML = users.map(user => `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.username}</td>
+                            <td>${user.level}</td>
+                            <td>${parseFloat(user.mc_balance).toFixed(4)} MC</td>
+                            <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}</td>
+                            <td>
+                                <button class="admin-btn primary" onclick="adminPanel.editUser(${user.id})">Edit</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (error) {
+                    this.showNotification('Failed to load users', 'error');
+                }
+            }
+
+            async loadGameStats() {
+                try {
+                    const response = await fetch('/api/admin/game-stats', { credentials: 'include' });
+                    const data = await response.json();
+
+                    document.getElementById('blackjackGames').textContent = data.blackjack?.count || 0;
+                    document.getElementById('coinflipGames').textContent = data.coinflip?.count || 0;
+                    document.getElementById('starboundGames').textContent = data.starbound?.count || 0;
+                    document.getElementById('totalPayout').textContent = (data.totalPayout || 0).toLocaleString();
+                } catch (error) {
+                    this.showNotification('Failed to load game stats', 'error');
+                }
+            }
+
+            async loadChatLogs() {
+                try {
+                    const response = await fetch('/api/admin/chat-logs', { credentials: 'include' });
+                    const messages = await response.json();
+
+                    const tbody = document.querySelector('#chatTable tbody');
+                    tbody.innerHTML = messages.map(msg => `
+                        <tr>
+                            <td>${new Date(msg.timestamp).toLocaleString()}</td>
+                            <td>${msg.username}</td>
+                            <td>${msg.message}</td>
+                            <td>
+                                <button class="admin-btn danger" onclick="adminPanel.deleteMessage(${msg.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (error) {
+                    this.showNotification('Failed to load chat logs', 'error');
+                }
+            }
+
+            async loadSettings() {
+                try {
+                    const response = await fetch('/api/admin/settings', { credentials: 'include' });
+                    const data = await response.json();
+
+                    document.getElementById('lastBackup').textContent = 
+                        data.last_backup ? new Date(data.last_backup).toLocaleString() : 'Never';
+                    document.getElementById('maintenanceMode').value = data.maintenance_mode ? '1' : '0';
+                } catch (error) {
+                    this.showNotification('Failed to load settings', 'error');
+                }
+            }
+
+            async createBackup() {
+                try {
+                    const response = await fetch('/api/admin/backup', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.showNotification('Backup created successfully', 'success');
+                        this.loadSettings();
+                    } else {
+                        this.showNotification('Failed to create backup', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Failed to create backup', 'error');
+                }
+            }
+
+            async logout() {
+                try {
+                    await fetch('/api/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    window.location.href = '/';
+                } catch (error) {
+                    window.location.href = '/';
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 1rem 2rem;
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 600;
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                `;
+                
+                switch (type) {
+                    case 'success':
+                        notification.style.background = 'linear-gradient(45deg, #00ff00, #32cd32)';
+                        break;
+                    case 'error':
+                        notification.style.background = 'linear-gradient(45deg, #ff4444, #cc0000)';
+                        break;
+                    default:
+                        notification.style.background = 'linear-gradient(45deg, #0f4c75, #1a1a2e)';
+                }
+                
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+        }
+
+        const adminPanel = new AdminPanel();
+
+        function showAdminPanel(panelName) {
+            adminPanel.showAdminPanel(panelName);
+        }
+
+        function logout() {
+            adminPanel.logout();
+        }
+
+        function createBackup() {
+            adminPanel.createBackup();
+        }
+
+        function loadChatLogs() {
+            adminPanel.loadChatLogs();
+        }
+    </script>
+</body>
+</html>

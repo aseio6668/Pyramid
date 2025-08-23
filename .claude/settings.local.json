@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(javac:*)",
+      "Bash(java:*)",
+      "Bash(npm start)",
+      "Bash(taskkill:*)",
+      "Bash(tskill:*)",
+      "Read(/C:\\Users\\aseio\\Documents\\.Source\\mastercredits\\public\\js/**)",
+      "Read(/C:\\Users\\aseio\\Documents\\.Source\\mastercredits\\public\\js/**)",
+      "Read(/C:\\Users\\aseio\\Documents\\.Source\\mastercredits\\public\\js/**)",
+      "Read(/C:\\Users\\aseio\\Documents\\.Source\\mastercredits\\public\\js/**)",
+      "Read(/C:\\Users\\aseio\\Documents\\.Source\\mastercredits\\public\\js/**)",
+      "Bash(npm run compile-java:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Users\\aseio\\Documents\\.Source\\mastercredits"
+    ]
+  }
+}
