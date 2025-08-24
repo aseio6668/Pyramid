@@ -218,8 +218,8 @@ class TalentTree {
     getTierPoints(tier) {
         const tierTalents = {
             1: ['pet-emojis', 'lore-mastery', 'lucky-charm'],
-            2: ['avatar-borders', 'chat-colors'],
-            3: ['font-style-mastery']
+            2: ['font-styles', 'stardom', 'profile-mastery', 'lucky', 'spooky', 'charming'],
+            3: ['blessing-of-fortune', 'evasion']
         };
         
         return tierTalents[tier].reduce((sum, talentId) => sum + (this.talents[talentId] || 0), 0);
@@ -230,9 +230,14 @@ class TalentTree {
             'pet-emojis': 'Pet Emojis',
             'lore-mastery': 'Lore Mastery',
             'lucky-charm': 'Lucky Charm',
-            'avatar-borders': 'Avatar Borders',
-            'chat-colors': 'Chat Colors',
-            'font-style-mastery': 'Font Style Mastery'
+            'font-styles': 'Font Styles',
+            'stardom': 'Stardom',
+            'profile-mastery': 'Profile Mastery',
+            'lucky': 'Lucky',
+            'spooky': 'Spooky',
+            'charming': 'Charming',
+            'blessing-of-fortune': 'Blessing of Fortune',
+            'evasion': 'Evasion'
         };
         return names[talentId] || talentId;
     }

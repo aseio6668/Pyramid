@@ -39,6 +39,8 @@ public class GameEngine {
                 return playCoinflip(gameData);
             case "starbound":
                 return playStarbound(gameData);
+            case "blacksmith":
+                return playBlacksmith(gameData);
             default:
                 throw new IllegalArgumentException("Unknown game type: " + gameType);
         }
@@ -299,6 +301,86 @@ public class GameEngine {
         }
         
         return score;
+    }
+    
+    public static GameResult playBlacksmith(Map<String, Object> gameData) {
+        double betAmount = ((Number) gameData.get("betAmount")).doubleValue();
+        String action = (String) gameData.getOrDefault("action", "sell");
+        
+        GameResult result = new GameResult();
+        
+        if ("sell".equals(action)) {
+            int itemIndex = ((Number) gameData.get("itemIndex")).intValue();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> selectedItemData = (Map<String, Object>) gameData.get("selectedItem");
+            
+            String itemName = (String) selectedItemData.get("name");
+            String itemIcon = (String) selectedItemData.get("icon");
+            String itemQuality = (String) selectedItemData.get("quality");
+            
+            // Merchant multiplier based on item quality and randomness
+            double merchantMultiplier = calculateMerchantMultiplier(itemQuality);
+            
+            // Calculate final payout (this is what the merchant pays)
+            result.payout = betAmount * merchantMultiplier;
+            
+            // Store merchant result data
+            result.data.put("selectedItem", selectedItemData);
+            result.data.put("itemIndex", itemIndex);
+            result.data.put("itemName", itemName);
+            result.data.put("itemIcon", itemIcon);
+            result.data.put("itemQuality", itemQuality);
+            result.data.put("merchantMultiplier", merchantMultiplier);
+            result.data.put("betAmount", betAmount);
+            result.data.put("totalPayout", result.payout);
+            
+            // Experience based on bet amount
+            result.experienceGained = Math.max(1, (int) (betAmount / 2500));
+            
+            result.success = true;
+        }
+        
+        return result;
+    }
+    
+    private static double calculateMerchantMultiplier(String quality) {
+        // Base multiplier ranges by quality, with significant randomness
+        double baseMin, baseMax;
+        
+        switch (quality.toLowerCase()) {
+            case "cursed":
+                baseMin = 0.1; baseMax = 0.8; // High risk of loss
+                break;
+            case "common":
+                baseMin = 0.5; baseMax = 1.5;
+                break;
+            case "uncommon":
+                baseMin = 0.7; baseMax = 2.0;
+                break;
+            case "rare":
+                baseMin = 0.8; baseMax = 3.0;
+                break;
+            case "epic":
+                baseMin = 1.0; baseMax = 4.0;
+                break;
+            case "legendary":
+                baseMin = 1.2; baseMax = 6.0;
+                break;
+            case "mythic":
+                baseMin = 1.5; baseMax = 8.0;
+                break;
+            case "artifact":
+                baseMin = 2.0; baseMax = 10.0;
+                break;
+            default:
+                baseMin = 0.5; baseMax = 1.5;
+        }
+        
+        // Add randomness within the quality range
+        double multiplier = baseMin + (random.nextDouble() * (baseMax - baseMin));
+        
+        // Round to 2 decimal places
+        return Math.round(multiplier * 100.0) / 100.0;
     }
     
     static class Card {

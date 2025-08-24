@@ -8,6 +8,25 @@
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 </head>
 <body>
+    <!-- AseioTech.com Top Banner -->
+    <div class="aseiotech-banner">
+        <div class="container">
+            <div class="banner-content">
+                <div class="aseiotech-logo">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">AseioTech.com</span>
+                </div>
+                <nav class="banner-nav">
+                    <a href="https://www.aseiotech.com" class="nav-link">Home</a>
+                    <a href="https://www.aseiotech.com/about" class="nav-link">About</a>
+                    <a href="https://www.aseiotech.com/services" class="nav-link">Services</a>
+                    <a href="/" class="nav-link active">Games</a>
+                    <a href="https://www.aseiotech.com/contact" class="nav-link">Contact</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
     <div id="app">
         <header class="header">
             <div class="container">
@@ -95,6 +114,13 @@
                                 <h3>🎲 Master's Dice</h3>
                                 <p>Roll the dice and predict the future</p>
                                 <div class="game-stats">Min: 1,000 MC | Max: 75,000 MC</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="playGame('blacksmith')">
+                            <div class="game-banner forge-theme">
+                                <h3>🔨 Blacksmith Forge</h3>
+                                <p>Forge items with the master craftsman</p>
+                                <div class="game-stats">Min: 2,500 MC | Max: 150,000 MC</div>
                             </div>
                         </div>
                     </div>
@@ -225,12 +251,12 @@
                             <div class="talent-tier" data-tier="2">
                                 <div class="tier-label">Tier 2 - Mastery <span class="tier-requirement">(Requires 5 points in Tier 1)</span></div>
                                 <div class="talents-row">
-                                    <div class="talent-node locked" data-talent="avatar-borders">
-                                        <div class="talent-icon">🖼️</div>
+                                    <div class="talent-node locked" data-talent="font-styles">
+                                        <div class="talent-icon">📝</div>
                                         <div class="talent-info">
-                                            <div class="talent-name">Avatar Borders</div>
+                                            <div class="talent-name">Font Styles</div>
                                             <div class="talent-points">0/5</div>
-                                            <div class="talent-description">Unlock decorative avatar borders</div>
+                                            <div class="talent-description">Unlock underline, bold, and italic formatting</div>
                                         </div>
                                         <div class="rank-indicators">
                                             <span class="rank-dot"></span>
@@ -241,12 +267,76 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="talent-node locked" data-talent="chat-colors">
-                                        <div class="talent-icon">🌈</div>
+                                    <div class="talent-node locked" data-talent="stardom">
+                                        <div class="talent-icon">⭐</div>
                                         <div class="talent-info">
-                                            <div class="talent-name">Chat Colors</div>
+                                            <div class="talent-name">Stardom</div>
                                             <div class="talent-points">0/5</div>
-                                            <div class="talent-description">Add colors to your chat messages</div>
+                                            <div class="talent-description">Create animated star effects in chat</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="profile-mastery">
+                                        <div class="talent-icon">👤</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Profile Mastery</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Expand profile description (+100 chars per rank)</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="lucky">
+                                        <div class="talent-icon">🎰</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Lucky</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">1%-5% chance for 1.25x gambling wins</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="spooky">
+                                        <div class="talent-icon">👻</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Spooky</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock monster and skeleton emojis</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="charming">
+                                        <div class="talent-icon">😊</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Charming</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock friendly and amiable emojis</div>
                                         </div>
                                         <div class="rank-indicators">
                                             <span class="rank-dot"></span>
@@ -263,12 +353,28 @@
                             <div class="talent-tier" data-tier="3">
                                 <div class="tier-label">Tier 3 - Expertise <span class="tier-requirement">(Requires 5 points in Tier 2)</span></div>
                                 <div class="talents-row">
-                                    <div class="talent-node locked" data-talent="font-style-mastery">
-                                        <div class="talent-icon">✨</div>
+                                    <div class="talent-node locked" data-talent="blessing-of-fortune">
+                                        <div class="talent-icon">🌟</div>
                                         <div class="talent-info">
-                                            <div class="talent-name">Font Style Mastery</div>
+                                            <div class="talent-name">Blessing of Fortune</div>
                                             <div class="talent-points">0/5</div>
-                                            <div class="talent-description">Combine all font styles (Requires Lore Mastery 5/5)</div>
+                                            <div class="talent-description">Enhanced Lucky bonus: 1.30x-1.50x multiplier (Requires Lucky 5/5)</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="evasion">
+                                        <div class="talent-icon">🛡️</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Evasion</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">0.5%-2.5% chance to recover bet on loss</div>
                                         </div>
                                         <div class="rank-indicators">
                                             <span class="rank-dot"></span>
@@ -349,8 +455,18 @@
             </div>
             <div id="chatMessages" class="chat-messages"></div>
             <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200">
-                <button onclick="sendMessage()">Send</button>
+                <div class="chat-formatting">
+                    <button id="boldBtn" class="format-btn" data-format="bold" title="Bold (unlock Font Styles talent)">B</button>
+                    <button id="italicBtn" class="format-btn" data-format="italic" title="Italic (unlock Font Styles talent)">I</button>
+                    <button id="underlineBtn" class="format-btn" data-format="underline" title="Underline (unlock Font Styles talent)">U</button>
+                    <button id="starBtn" class="format-btn" data-format="star" title="Star Animation (unlock Stardom talent)">⭐</button>
+                    <button id="emojiBtn" class="format-btn" data-format="emoji" title="Special Emojis (unlock talent)">😊</button>
+                    <button id="settingsBtn" class="format-btn locked" title="Unlock talents for more chat features">?</button>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
             </div>
         </div>
 

@@ -27,6 +27,10 @@ class GameManager {
                 title.textContent = '🎲 Master\'s Dice';
                 content.innerHTML = this.createMastersDiceInterface();
                 break;
+            case 'blacksmith':
+                title.textContent = '🔨 Blacksmith Forge';
+                content.innerHTML = this.createBlacksmithInterface();
+                break;
         }
         
         modal.classList.remove('hidden');
@@ -261,6 +265,90 @@ class GameManager {
                     </div>
                     
                     <div id="mastersDiceResult" class="game-result"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    createBlacksmithInterface() {
+        return `
+            <div class="blacksmith-game">
+                <div class="forge-theme-bg">
+                    <div class="game-header">
+                        <h4>🔨 Welcome to the Forge 🔨</h4>
+                        <p>Forge items with the master craftsman and choose your reward!</p>
+                    </div>
+                    
+                    <div class="blacksmith-character">
+                        <div class="game-master">
+                            <div class="dog-blacksmith">🐕‍🔧</div>
+                            <div class="speech-bubble">
+                                "Welcome, adventurer! I'll forge 3 items for you. Choose wisely - each holds different treasures!"
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="betting-section">
+                        <label for="blacksmithBet">Your Investment (MC):</label>
+                        <input type="number" id="blacksmithBet" min="2500" max="150000" step="2500" value="10000">
+                        <button id="startForging" onclick="gameManager.startForging()">🔨 Begin Forging</button>
+                    </div>
+                    
+                    <div id="forgingAnimation" class="forging-area" style="display: none;">
+                        <div class="forge-fire">🔥</div>
+                        <div class="forging-progress">
+                            <div class="hammer">🔨</div>
+                            <div class="anvil">⚒️</div>
+                        </div>
+                        <div class="forge-status">The master is forging your items...</div>
+                    </div>
+                    
+                    <div id="itemSelection" class="item-cards" style="display: none;">
+                        <h4>🎁 Choose Your Item (Pick 1 of 4 Forged Items)</h4>
+                        <div class="items-grid">
+                            <div class="item-card" onclick="gameManager.selectForgedItem(0)">
+                                <div class="item-icon" id="item0Icon">⚔️</div>
+                                <div class="item-name" id="item0Name">Mysterious Item</div>
+                                <div class="item-quality" id="item0Quality">Unknown Quality</div>
+                            </div>
+                            <div class="item-card" onclick="gameManager.selectForgedItem(1)">
+                                <div class="item-icon" id="item1Icon">🛡️</div>
+                                <div class="item-name" id="item1Name">Mysterious Item</div>
+                                <div class="item-quality" id="item1Quality">Unknown Quality</div>
+                            </div>
+                            <div class="item-card" onclick="gameManager.selectForgedItem(2)">
+                                <div class="item-icon" id="item2Icon">💎</div>
+                                <div class="item-name" id="item2Name">Mysterious Item</div>
+                                <div class="item-quality" id="item2Quality">Unknown Quality</div>
+                            </div>
+                            <div class="item-card" onclick="gameManager.selectForgedItem(3)">
+                                <div class="item-icon" id="item3Icon">🏺</div>
+                                <div class="item-name" id="item3Name">Mysterious Item</div>
+                                <div class="item-quality" id="item3Quality">Unknown Quality</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="merchantSection" class="merchant-area" style="display: none;">
+                        <div class="shady-merchant">
+                            <div class="merchant-character">
+                                <div class="dog-merchant">🐕‍💼</div>
+                                <div class="speech-bubble merchant-speech">
+                                    "Psst... I'll buy that from you. Let's see what it's really worth..."
+                                </div>
+                            </div>
+                            <div class="selected-item-display">
+                                <div class="item-showcase">
+                                    <div class="showcase-icon" id="selectedItemIcon">⚔️</div>
+                                    <div class="showcase-name" id="selectedItemName">Selected Item</div>
+                                    <div class="showcase-quality" id="selectedItemQuality">Quality Rating</div>
+                                </div>
+                                <button id="sellToMerchant" onclick="gameManager.sellToMerchant()">💰 Sell to Merchant</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="blacksmithResult" class="game-result"></div>
                 </div>
             </div>
         `;
@@ -760,6 +848,192 @@ class GameManager {
         setTimeout(() => {
             notification.remove();
         }, 3000);
+    }
+
+    async startForging() {
+        const betAmount = parseFloat(document.getElementById('blacksmithBet').value);
+        
+        if (betAmount < 2500 || betAmount > 150000) {
+            this.showGameMessage('Investment must be between 2,500 and 150,000 MC', 'error');
+            return;
+        }
+
+        if (app.currentUser.mcBalance < betAmount) {
+            this.showGameMessage('Insufficient balance for this investment', 'error');
+            return;
+        }
+
+        // Hide betting section and show forging animation
+        document.getElementById('startForging').style.display = 'none';
+        document.getElementById('forgingAnimation').style.display = 'block';
+
+        // Show forging animation for 3 seconds
+        setTimeout(() => {
+            this.showForgedItems(betAmount);
+        }, 3000);
+    }
+
+    showForgedItems(betAmount) {
+        // Hide forging animation
+        document.getElementById('forgingAnimation').style.display = 'none';
+        
+        // Generate 4 random items with different multipliers
+        const items = this.generateForgedItems();
+        
+        // Store the items for selection
+        this.forgedItems = items;
+        this.currentBet = betAmount;
+        
+        // Display the items
+        for (let i = 0; i < 4; i++) {
+            document.getElementById(`item${i}Icon`).textContent = items[i].icon;
+            document.getElementById(`item${i}Name`).textContent = items[i].name;
+            document.getElementById(`item${i}Quality`).textContent = items[i].quality;
+        }
+        
+        // Show item selection
+        document.getElementById('itemSelection').style.display = 'block';
+    }
+
+    generateForgedItems() {
+        const itemPool = [
+            { icon: '⚔️', name: 'Iron Sword', quality: 'Common' },
+            { icon: '🛡️', name: 'Steel Shield', quality: 'Common' },
+            { icon: '🏺', name: 'Ancient Vase', quality: 'Common' },
+            { icon: '⚒️', name: 'War Hammer', quality: 'Uncommon' },
+            { icon: '💎', name: 'Rare Gem', quality: 'Rare' },
+            { icon: '👑', name: 'Golden Crown', quality: 'Rare' },
+            { icon: '💰', name: 'Treasure Chest', quality: 'Epic' },
+            { icon: '🔮', name: 'Crystal Orb', quality: 'Epic' },
+            { icon: '🗡️', name: 'Dragon Blade', quality: 'Legendary' },
+            { icon: '💍', name: 'Magic Ring', quality: 'Legendary' },
+            { icon: '🏮', name: 'Mystic Lantern', quality: 'Rare' },
+            { icon: '⚱️', name: 'Soul Jar', quality: 'Epic' },
+            { icon: '🎭', name: 'Theater Mask', quality: 'Uncommon' },
+            { icon: '🔱', name: 'Trident of Power', quality: 'Legendary' },
+            { icon: '💀', name: 'Cursed Skull', quality: 'Cursed' },
+            { icon: '🌟', name: 'Shooting Star', quality: 'Mythic' },
+            { icon: '🦄', name: 'Unicorn Horn', quality: 'Mythic' },
+            { icon: '🐉', name: 'Dragon Scale', quality: 'Mythic' },
+            { icon: '🔥', name: 'Eternal Flame', quality: 'Artifact' }
+        ];
+
+        // Select 4 random items from the pool
+        const selectedItems = [];
+        const usedIndices = new Set();
+        
+        while (selectedItems.length < 4) {
+            const randomIndex = Math.floor(Math.random() * itemPool.length);
+            if (!usedIndices.has(randomIndex)) {
+                usedIndices.add(randomIndex);
+                selectedItems.push(itemPool[randomIndex]);
+            }
+        }
+        
+        return selectedItems;
+    }
+
+    selectForgedItem(index) {
+        if (!this.forgedItems || !this.currentBet) return;
+        
+        const selectedItem = this.forgedItems[index];
+        this.selectedItem = selectedItem;
+        this.selectedItemIndex = index;
+        
+        // Hide item selection and show merchant
+        document.getElementById('itemSelection').style.display = 'none';
+        
+        // Display selected item in merchant section
+        document.getElementById('selectedItemIcon').textContent = selectedItem.icon;
+        document.getElementById('selectedItemName').textContent = selectedItem.name;
+        document.getElementById('selectedItemQuality').textContent = `${selectedItem.quality} Quality`;
+        
+        // Show merchant section
+        document.getElementById('merchantSection').style.display = 'block';
+    }
+
+    async sellToMerchant() {
+        if (!this.selectedItem || !this.currentBet) return;
+        
+        try {
+            // Call backend to deduct bet and determine merchant payout
+            const response = await fetch('/api/play-game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    gameType: 'blacksmith',
+                    betAmount: this.currentBet,
+                    action: 'sell',
+                    itemIndex: this.selectedItemIndex,
+                    selectedItem: this.selectedItem
+                })
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                app.currentUser.mcBalance = result.newBalance;
+                app.updateUserDisplay();
+                
+                this.displayMerchantResult(result);
+            } else {
+                this.showGameMessage(result.error, 'error');
+            }
+        } catch (error) {
+            this.showGameMessage('Failed to sell to merchant', 'error');
+        }
+    }
+
+    displayMerchantResult(gameResult) {
+        // Hide merchant section
+        document.getElementById('merchantSection').style.display = 'none';
+        
+        const payout = gameResult.payout || 0;
+        const profit = payout - this.currentBet;
+        const merchantMultiplier = gameResult.gameData.merchantMultiplier || 0;
+        
+        let message = `🐕‍💼 The merchant examined your ${this.selectedItem.icon} ${this.selectedItem.name}<br>`;
+        message += `💰 Merchant paid: ${app.formatMC(payout)} MC (${merchantMultiplier}x multiplier)<br>`;
+        
+        if (profit > 0) {
+            message += `🎉 Profit: +${app.formatMC(profit)} MC`;
+        } else if (profit < 0) {
+            message += `💸 Loss: ${app.formatMC(Math.abs(profit))} MC`;
+        } else {
+            message += `🤝 Break even!`;
+        }
+        
+        if (gameResult.experienceGained > 0) {
+            message += `<br>⭐ +${gameResult.experienceGained} XP gained!`;
+        }
+        
+        const messageClass = profit > 0 ? 'success' : profit < 0 ? 'error' : 'info';
+        
+        document.getElementById('blacksmithResult').innerHTML = `
+            <div class="result-message ${messageClass}">${message}</div>
+            <button onclick="gameManager.resetBlacksmith()">🔨 Forge Again</button>
+        `;
+    }
+
+    resetBlacksmith() {
+        // Reset all game elements
+        document.getElementById('startForging').style.display = 'inline-block';
+        document.getElementById('forgingAnimation').style.display = 'none';
+        document.getElementById('itemSelection').style.display = 'none';
+        document.getElementById('merchantSection').style.display = 'none';
+        document.getElementById('blacksmithResult').innerHTML = '';
+        
+        // Clear game state
+        this.forgedItems = null;
+        this.selectedItem = null;
+        this.selectedItemIndex = null;
+        this.currentBet = 0;
+        
+        // Reset bet amount
+        document.getElementById('blacksmithBet').value = '10000';
     }
 }
 

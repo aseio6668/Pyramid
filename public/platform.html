@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AseioTech Pyramid - Gaming Platform</title>
+    <link rel="stylesheet" href="/css/platform.css">
+    <link rel="icon" href="/images/pyramid-logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- AseioTech.com Top Banner -->
+    <div class="aseiotech-banner">
+        <div class="container">
+            <div class="banner-content">
+                <div class="aseiotech-logo">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">AseioTech.com</span>
+                </div>
+                <nav class="banner-nav">
+                    <a href="https://www.aseiotech.com" class="nav-link">Home</a>
+                    <a href="https://www.aseiotech.com/about" class="nav-link">About</a>
+                    <a href="https://www.aseiotech.com/services" class="nav-link">Services</a>
+                    <a href="/" class="nav-link active">Games</a>
+                    <a href="https://www.aseiotech.com/contact" class="nav-link">Contact</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div id="platform">
+        <header class="platform-header">
+            <div class="container">
+                <div class="logo-section">
+                    <div class="pyramid-logo">🔺</div>
+                    <h1>AseioTech Pyramid</h1>
+                    <span class="platform-subtitle">Online Game Console</span>
+                </div>
+                
+                <nav class="platform-nav">
+                    <div class="games-dropdown">
+                        <button class="games-btn">🎮 All Games</button>
+                        <div class="games-menu">
+                            <a href="/games/mastercredits" class="game-link casino-link">
+                                <span class="game-icon">🎰</span>
+                                <span class="game-info">
+                                    <span class="game-name">MasterCredits Casino</span>
+                                    <span class="game-desc">Fake money casino games</span>
+                                </span>
+                            </a>
+                            <a href="/games/pyramidrunner" class="game-link platformer-link">
+                                <span class="game-icon">🏃</span>
+                                <span class="game-info">
+                                    <span class="game-name">Pyramid Runner</span>
+                                    <span class="game-desc">2D platformer adventure</span>
+                                </span>
+                            </a>
+                            <div class="coming-soon">
+                                <span class="game-icon">🚀</span>
+                                <span class="game-info">
+                                    <span class="game-name">More Games Coming Soon!</span>
+                                    <span class="game-desc">FPS, Fighting, Multiplayer</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                
+                <div class="user-section">
+                    <div id="userInfo" class="user-info" style="display: none;">
+                        <div class="user-avatar">
+                            <img id="userAvatar" src="" alt="Avatar">
+                        </div>
+                        <div class="user-details">
+                            <span id="username">Player</span>
+                            <span id="userLevel">Level 1</span>
+                        </div>
+                        <div class="user-menu">
+                            <button class="profile-btn" onclick="showProfile()">Profile</button>
+                            <button class="logout-btn" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div id="authButtons" class="auth-buttons">
+                        <button class="login-btn" onclick="showLogin()">Login</button>
+                        <button class="register-btn" onclick="showRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="platform-main">
+            <section id="home-section" class="platform-section active">
+                <div class="container">
+                    <div class="hero-section">
+                        <div class="hero-content">
+                            <h2>Welcome to AseioTech Pyramid</h2>
+                            <p class="hero-subtitle">Your Gateway to Free Gaming Entertainment</p>
+                            <p class="hero-description">
+                                A collection of handcrafted games designed for fun and education. 
+                                All games are completely free with no ads, no purchases, no strings attached!
+                            </p>
+                        </div>
+                        <div class="hero-pyramid">
+                            <div class="pyramid-visual">
+                                <div class="pyramid-tier tier-1">🎰</div>
+                                <div class="pyramid-tier tier-2">🏃 🎯</div>
+                                <div class="pyramid-tier tier-3">🚀 ⚔️ 🏗️</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="games-showcase">
+                        <h3>Featured Games</h3>
+                        <div class="games-grid">
+                            <div class="game-card featured" onclick="window.location.href='/games/mastercredits'">
+                                <div class="game-thumbnail casino-theme">
+                                    <div class="game-icon">🎰</div>
+                                    <div class="game-title">MasterCredits Casino</div>
+                                </div>
+                                <div class="game-details">
+                                    <p>Experience the thrill of casino gaming with fake money! Features blackjack, coinflip, slots, dice games, and a unique blacksmith forge system.</p>
+                                    <div class="game-features">
+                                        <span class="feature">🎯 5 Unique Games</span>
+                                        <span class="feature">🌟 Talent Tree System</span>
+                                        <span class="feature">💬 Global Chat</span>
+                                    </div>
+                                    <button class="play-btn">Play Now</button>
+                                </div>
+                            </div>
+                            
+                            <div class="game-card" onclick="window.location.href='/games/pyramidrunner'">
+                                <div class="game-thumbnail platformer-theme">
+                                    <div class="game-icon">🏃</div>
+                                    <div class="game-title">Pyramid Runner</div>
+                                </div>
+                                <div class="game-details">
+                                    <p>Classic 2D platformer adventure! Play as Aseio, an ancient explorer on a quest for the Pyramid of Infinite Knowledge. Jump, run, and explore challenging levels!</p>
+                                    <div class="game-features">
+                                        <span class="feature">🏃 Ancient Explorer</span>
+                                        <span class="feature">📈 High Score System</span>
+                                        <span class="feature">🏆 Multiple Levels</span>
+                                    </div>
+                                    <button class="play-btn">Play Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="platform-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h4>AseioTech Pyramid</h4>
+                        <p>Free games for education and entertainment</p>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Games</h4>
+                        <a href="/games/mastercredits">MasterCredits Casino</a>
+                        <a href="/games/pyramidrunner">Pyramid Runner</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Platform</h4>
+                        <a href="#" onclick="showProfile()">Profile</a>
+                        <a href="#" onclick="showSettings()">Settings</a>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 AseioTech Pyramid - All games are free and educational</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-header">
+                <h3 id="authTitle">Login</h3>
+                <button class="modal-close" onclick="closeAuthModal()">×</button>
+            </div>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                    <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Login to Platform</button>
+                </form>
+                
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="registerUsername">Username (1-12 characters, letters/numbers only)</label>
+                        <input type="text" id="registerUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password (4-30 characters)</label>
+                        <input type="password" id="registerPassword" required minlength="4" maxlength="30">
+                    </div>
+                    <div class="form-group">
+                        <label for="backupEmail">Backup Email (Optional)</label>
+                        <input type="email" id="backupEmail" placeholder="For account recovery">
+                    </div>
+                    <div class="form-group captcha-group">
+                        <label for="captchaInput">Enter the captcha</label>
+                        <div class="captcha-container">
+                            <img id="captchaImage" src="" alt="Captcha">
+                            <button type="button" onclick="refreshCaptcha()" class="refresh-captcha">↻</button>
+                        </div>
+                        <input type="text" id="captchaInput" required maxlength="5">
+                    </div>
+                    <button type="submit" class="auth-btn">Create Platform Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Platform Profile</h3>
+                <button class="modal-close" onclick="closeProfile()">×</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-overview">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h4 id="profileUsername">Player</h4>
+                        <p id="profileLevel">Platform Level 1</p>
+                        <p id="profileJoined">Joined: --</p>
+                    </div>
+                </div>
+                
+                <div class="games-progress">
+                    <h4>Games Progress</h4>
+                    <div class="game-progress-list">
+                        <div class="game-progress-item" id="masterCreditsProgress">
+                            <div class="game-icon">🎰</div>
+                            <div class="progress-info">
+                                <span class="game-name">MasterCredits Casino</span>
+                                <div class="progress-stats">
+                                    <span id="mcLevel">Level --</span>
+                                    <span id="mcBalance">Balance: -- MC</span>
+                                    <span id="mcSkillPoints">Skill Points: --</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-progress-item" id="pyramidRunnerProgress">
+                            <div class="game-icon">🏃</div>
+                            <div class="progress-info">
+                                <span class="game-name">Pyramid Runner</span>
+                                <div class="progress-stats">
+                                    <span id="prHighScore">High Score: --</span>
+                                    <span id="prLevelsCompleted">Levels: --</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/platform.js"></script>
+</body>
+</html>

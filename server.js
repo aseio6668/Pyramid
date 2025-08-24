@@ -56,57 +56,85 @@ app.use('/uploads', express.static('uploads'));
 const db = new sqlite3.Database('./database/mastercredits.db');
 
 db.serialize(() => {
+    // Platform Users - main user table for all games
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        email TEXT,
+        platform_level INTEGER DEFAULT 1,
+        platform_experience INTEGER DEFAULT 0,
+        avatar_path TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME,
+        unlocked_avatars TEXT DEFAULT '[]',
+        muted_users TEXT DEFAULT '[]'
+    )`);
+
+    // Game-specific data for MasterCredits Casino
+    db.run(`CREATE TABLE IF NOT EXISTS mastercredits_data (
+        user_id INTEGER PRIMARY KEY,
         mc_balance REAL DEFAULT 100000.0000,
         level INTEGER DEFAULT 1,
         experience INTEGER DEFAULT 0,
         skill_points INTEGER DEFAULT 0,
-        avatar_path TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_login DATETIME,
         last_handout DATETIME,
-        unlocked_avatars TEXT DEFAULT '[]',
         unlocked_emojis TEXT DEFAULT '[]',
-        muted_users TEXT DEFAULT '[]'
+        FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
+    // Game-specific data for Pyramid Runner (placeholder for future)
+    db.run(`CREATE TABLE IF NOT EXISTS pyramidrunner_data (
+        user_id INTEGER PRIMARY KEY,
+        high_score INTEGER DEFAULT 0,
+        levels_completed INTEGER DEFAULT 0,
+        current_character TEXT DEFAULT 'default',
+        unlocked_characters TEXT DEFAULT '[]',
+        power_ups TEXT DEFAULT '[]',
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )`);
+
+    // Unified game sessions for all games
     db.run(`CREATE TABLE IF NOT EXISTS game_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
+        game_name TEXT,
         game_type TEXT,
         bet_amount REAL,
         payout REAL,
         result TEXT,
+        platform_experience_gained INTEGER DEFAULT 0,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
+    // Platform-wide chat messages
     db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         username TEXT,
         message TEXT,
+        game_context TEXT DEFAULT 'platform',
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         is_system BOOLEAN DEFAULT 0,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS admin_settings (
-        id INTEGER PRIMARY KEY,
-        admin_password TEXT DEFAULT '$2b$10$rQZ1vQZ1vQZ1vQZ1vQZ1vO',
-        last_backup DATETIME,
-        maintenance_mode BOOLEAN DEFAULT 0
-    )`);
-
-    db.run(`CREATE TABLE IF NOT EXISTS user_talents (
+    // MasterCredits specific talents
+    db.run(`CREATE TABLE IF NOT EXISTS mastercredits_talents (
         user_id INTEGER,
         talent_id TEXT,
         points INTEGER DEFAULT 0,
         PRIMARY KEY (user_id, talent_id),
         FOREIGN KEY(user_id) REFERENCES users(id)
+    )`);
+
+    // Platform admin settings
+    db.run(`CREATE TABLE IF NOT EXISTS admin_settings (
+        id INTEGER PRIMARY KEY,
+        admin_password TEXT DEFAULT '$2b$10$rQZ1vQZ1vQZ1vQZ1vQZ1vO',
+        last_backup DATETIME,
+        maintenance_mode BOOLEAN DEFAULT 0
     )`);
 
     db.run(`INSERT OR IGNORE INTO admin_settings (id, admin_password) VALUES (1, ?);`, [bcrypt.hashSync('admin', 10)]);
@@ -174,8 +202,17 @@ function createCaptchaImage(text) {
     return `data:image/svg+xml;base64,${Buffer.from(canvas).toString('base64')}`;
 }
 
+// Platform routes
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'platform.html'));
+});
+
+app.get('/games/mastercredits', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/games/pyramidrunner', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pyramidrunner.html'));
 });
 
 app.get('/admin', requireAdmin, (req, res) => {
@@ -319,7 +356,7 @@ app.get('/api/captcha', (req, res) => {
 });
 
 app.post('/api/register', (req, res) => {
-    const { username, password, captcha } = req.body;
+    const { username, password, email, captcha } = req.body;
     
     if (!req.session.captcha || captcha !== req.session.captcha) {
         return res.status(400).json({ error: 'Invalid captcha' });
@@ -339,7 +376,7 @@ app.post('/api/register', (req, res) => {
     
     const hashedPassword = bcrypt.hashSync(password, 10);
     
-    db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], function(err) {
+    db.run('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, hashedPassword, email || null], function(err) {
         if (err) {
             if (err.code === 'SQLITE_CONSTRAINT') {
                 return res.status(400).json({ error: 'Username already exists' });
@@ -347,11 +384,28 @@ app.post('/api/register', (req, res) => {
             return res.status(500).json({ error: 'Registration failed' });
         }
         
-        req.session.userId = this.lastID;
+        const userId = this.lastID;
+        
+        // Initialize MasterCredits data for new user
+        db.run('INSERT INTO mastercredits_data (user_id) VALUES (?)', [userId], (mcErr) => {
+            if (mcErr) console.error('Failed to initialize MasterCredits data:', mcErr);
+        });
+        
+        // Initialize Pyramid Runner data for new user
+        db.run('INSERT INTO pyramidrunner_data (user_id) VALUES (?)', [userId], (prErr) => {
+            if (prErr) console.error('Failed to initialize Pyramid Runner data:', prErr);
+        });
+        
+        req.session.userId = userId;
         req.session.username = username;
         delete req.session.captcha;
         
-        res.json({ success: true, message: 'Registration successful' });
+        res.json({ 
+            success: true, 
+            username: username,
+            level: 1,
+            avatar: null
+        });
     });
 });
 
@@ -381,13 +435,14 @@ app.post('/api/login', (req, res) => {
         
         db.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
         
-        res.json({ success: true, user: {
+        res.json({ 
+            success: true, 
             username: user.username,
-            mcBalance: user.mc_balance,
-            level: user.level,
-            experience: user.experience,
-            avatarPath: user.avatar_path
-        }});
+            level: user.platform_level,
+            experience: user.platform_experience,
+            avatar: user.avatar_path,
+            createdAt: user.created_at
+        });
     });
 });
 
@@ -396,18 +451,58 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
-app.get('/api/user', requireAuth, (req, res) => {
+// Platform profile endpoint
+app.get('/api/profile', requireAuth, (req, res) => {
+    // Get main user data
     db.get('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, user) => {
+        if (err || !user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Get MasterCredits data
+        db.get('SELECT * FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (mcErr, mcData) => {
+            // Get Pyramid Runner data
+            db.get('SELECT * FROM pyramidrunner_data WHERE user_id = ?', [req.session.userId], (prErr, prData) => {
+                res.json({
+                    username: user.username,
+                    level: user.platform_level,
+                    experience: user.platform_experience,
+                    avatar: user.avatar_path,
+                    email: user.email,
+                    createdAt: user.created_at,
+                    unlockedAvatars: JSON.parse(user.unlocked_avatars || '[]'),
+                    masterCreditsData: mcData ? {
+                        balance: mcData.mc_balance,
+                        level: mcData.level,
+                        experience: mcData.experience,
+                        skillPoints: mcData.skill_points,
+                        unlockedEmojis: JSON.parse(mcData.unlocked_emojis || '[]')
+                    } : null,
+                    pyramidRunnerData: prData ? {
+                        highScore: prData.high_score,
+                        levelsCompleted: prData.levels_completed,
+                        currentCharacter: prData.current_character,
+                        unlockedCharacters: JSON.parse(prData.unlocked_characters || '[]')
+                    } : null
+                });
+            });
+        });
+    });
+});
+
+// Legacy user endpoint for MasterCredits compatibility
+app.get('/api/user', requireAuth, (req, res) => {
+    db.get('SELECT * FROM users u LEFT JOIN mastercredits_data mc ON u.id = mc.user_id WHERE u.id = ?', [req.session.userId], (err, user) => {
         if (err || !user) {
             return res.status(404).json({ error: 'User not found' });
         }
         
         res.json({
             username: user.username,
-            mcBalance: user.mc_balance,
-            level: user.level,
-            experience: user.experience,
-            skillPoints: user.skill_points,
+            mcBalance: user.mc_balance || 100000,
+            level: user.level || 1,
+            experience: user.experience || 0,
+            skillPoints: user.skill_points || 0,
             avatarPath: user.avatar_path,
             unlockedAvatars: JSON.parse(user.unlocked_avatars || '[]'),
             unlockedEmojis: JSON.parse(user.unlocked_emojis || '[]')
@@ -416,31 +511,43 @@ app.get('/api/user', requireAuth, (req, res) => {
 });
 
 app.post('/api/handout', requireAuth, (req, res) => {
-    db.get('SELECT last_handout, mc_balance FROM users WHERE id = ?', [req.session.userId], (err, user) => {
+    db.get('SELECT last_handout, mc_balance FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (err, mcData) => {
         if (err) {
             return res.status(500).json({ error: 'Database error' });
         }
         
+        if (!mcData) {
+            // Initialize MasterCredits data if it doesn't exist
+            db.run('INSERT INTO mastercredits_data (user_id) VALUES (?)', [req.session.userId], (initErr) => {
+                if (initErr) {
+                    return res.status(500).json({ error: 'Failed to initialize game data' });
+                }
+                // Retry with new data
+                return app.post('/api/handout', requireAuth, (req, res));
+            });
+            return;
+        }
+        
         const now = new Date();
-        const lastHandout = user.last_handout ? new Date(user.last_handout) : null;
+        const lastHandout = mcData.last_handout ? new Date(mcData.last_handout) : null;
         
         if (lastHandout && (now - lastHandout) < 30000) {
             return res.status(400).json({ error: 'Must wait 30 seconds between handouts' });
         }
         
-        if (user.mc_balance > 1000) {
+        if (mcData.mc_balance > 1000) {
             return res.status(400).json({ error: 'Can only get handout when balance is below 1000 MC' });
         }
         
         const handoutAmount = 10000;
         
-        db.run('UPDATE users SET mc_balance = mc_balance + ?, last_handout = CURRENT_TIMESTAMP WHERE id = ?', 
+        db.run('UPDATE mastercredits_data SET mc_balance = mc_balance + ?, last_handout = CURRENT_TIMESTAMP WHERE user_id = ?', 
             [handoutAmount, req.session.userId], (err) => {
             if (err) {
                 return res.status(500).json({ error: 'Failed to process handout' });
             }
             
-            res.json({ success: true, amount: handoutAmount, newBalance: user.mc_balance + handoutAmount });
+            res.json({ success: true, amount: handoutAmount, newBalance: mcData.mc_balance + handoutAmount });
         });
     });
 });
@@ -493,12 +600,16 @@ app.post('/api/select-avatar', requireAuth, (req, res) => {
 });
 
 function updateUserStats(userId, experienceGained, callback) {
-    db.get('SELECT level, experience, skill_points FROM users WHERE id = ?', [userId], (err, user) => {
+    db.get('SELECT level, experience, skill_points FROM mastercredits_data WHERE user_id = ?', [userId], (err, mcData) => {
         if (err) return callback(err);
         
-        let newExp = user.experience + experienceGained;
-        let newLevel = user.level;
-        let newSkillPoints = user.skill_points;
+        if (!mcData) {
+            return callback(new Error('MasterCredits data not found'));
+        }
+        
+        let newExp = mcData.experience + experienceGained;
+        let newLevel = mcData.level;
+        let newSkillPoints = mcData.skill_points;
         let leveledUp = false;
         
         const expNeeded = newLevel * 1000;
@@ -510,13 +621,13 @@ function updateUserStats(userId, experienceGained, callback) {
             leveledUp = true;
         }
         
-        db.run('UPDATE users SET level = ?, experience = ?, skill_points = ? WHERE id = ?', 
+        db.run('UPDATE mastercredits_data SET level = ?, experience = ?, skill_points = ? WHERE user_id = ?', 
             [newLevel, newExp, newSkillPoints, userId], (err) => {
             if (err) return callback(err);
             
             if (leveledUp) {
                 const levelUpReward = newLevel * 5000;
-                db.run('UPDATE users SET mc_balance = mc_balance + ? WHERE id = ?', [levelUpReward, userId]);
+                db.run('UPDATE mastercredits_data SET mc_balance = mc_balance + ? WHERE user_id = ?', [levelUpReward, userId]);
             }
             
             callback(null, { leveledUp, newLevel, newSkillPoints, levelUpReward: leveledUp ? newLevel * 5000 : 0 });
@@ -531,12 +642,16 @@ app.post('/api/play-game', requireAuth, (req, res) => {
         return res.status(400).json({ error: 'Game type and bet amount required' });
     }
     
-    db.get('SELECT mc_balance FROM users WHERE id = ?', [req.session.userId], (err, user) => {
-        if (err || !user) {
-            return res.status(500).json({ error: 'User not found' });
+    db.get('SELECT mc_balance FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (err, mcData) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database error' });
         }
         
-        if (betAmount > user.mc_balance) {
+        if (!mcData) {
+            return res.status(500).json({ error: 'MasterCredits data not found' });
+        }
+        
+        if (betAmount > mcData.mc_balance) {
             return res.status(400).json({ error: 'Insufficient balance' });
         }
         
@@ -558,19 +673,22 @@ app.post('/api/play-game', requireAuth, (req, res) => {
             
             console.log(`Game ${gameType} result:`, result);
             
-            // For blackjack hit/stand, don't deduct bet again - it was already deducted on deal
-            const shouldDeductBet = !(gameType === 'blackjack' && (action === 'hit' || action === 'stand'));
-            const newBalance = user.mc_balance - (shouldDeductBet ? betAmount : 0) + (result.payout || 0);
+            // For blackjack hit/stand and blacksmith sell, don't deduct bet again - it was already deducted on deal/forge
+            const shouldDeductBet = !(
+                (gameType === 'blackjack' && (action === 'hit' || action === 'stand')) ||
+                (gameType === 'blacksmith' && action === 'sell')
+            );
+            const newBalance = mcData.mc_balance - (shouldDeductBet ? betAmount : 0) + (result.payout || 0);
             
-            db.run('UPDATE users SET mc_balance = ? WHERE id = ?', [newBalance, req.session.userId], (updateErr) => {
+            db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
                 if (updateErr) {
                     return res.status(500).json({ error: 'Failed to update balance' });
                 }
                 
                 // Only log game sessions for initial bets, not hit/stand actions
                 if (shouldDeductBet) {
-                    db.run('INSERT INTO game_sessions (user_id, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?)',
-                        [req.session.userId, gameType, betAmount, result.payout || 0, JSON.stringify(result.data)]);
+                    db.run('INSERT INTO game_sessions (user_id, game_name, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?, ?)',
+                        [req.session.userId, 'mastercredits', gameType, betAmount, result.payout || 0, JSON.stringify(result.data)]);
                 }
                 
                 if (result.experienceGained > 0) {
@@ -671,7 +789,7 @@ function callJavaGameEngine(gameType, gameData, callback) {
 
 // Talent Tree API endpoints
 app.get('/api/talents', requireAuth, (req, res) => {
-    db.all('SELECT talent_id, points FROM user_talents WHERE user_id = ?', [req.session.userId], (err, talents) => {
+    db.all('SELECT talent_id, points FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err, talents) => {
         if (err) {
             return res.status(500).json({ error: 'Failed to load talents' });
         }
@@ -698,7 +816,7 @@ app.post('/api/talents/allocate', requireAuth, (req, res) => {
             return res.status(500).json({ error: 'User not found' });
         }
         
-        db.all('SELECT talent_id, points FROM user_talents WHERE user_id = ?', [req.session.userId], (err, currentTalents) => {
+        db.all('SELECT talent_id, points FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err, currentTalents) => {
             if (err) {
                 return res.status(500).json({ error: 'Failed to load current talents' });
             }
@@ -722,7 +840,7 @@ app.post('/api/talents/allocate', requireAuth, (req, res) => {
             }
             
             // Update or insert talent points
-            db.run('INSERT OR REPLACE INTO user_talents (user_id, talent_id, points) VALUES (?, ?, ?)', 
+            db.run('INSERT OR REPLACE INTO mastercredits_talents (user_id, talent_id, points) VALUES (?, ?, ?)', 
                 [req.session.userId, talentId, points], (err) => {
                 if (err) {
                     return res.status(500).json({ error: 'Failed to update talent' });
@@ -747,9 +865,14 @@ function validateTierRequirements(talentId, points, currentTalents) {
         'pet-emojis': 1,
         'lore-mastery': 1,
         'lucky-charm': 1,
-        'avatar-borders': 2,
-        'chat-colors': 2,
-        'font-style-mastery': 3
+        'font-styles': 2,
+        'stardom': 2,
+        'profile-mastery': 2,
+        'lucky': 2,
+        'spooky': 2,
+        'charming': 2,
+        'blessing-of-fortune': 3,
+        'evasion': 3
     };
     
     const talentTier = talentTiers[talentId];
@@ -764,7 +887,7 @@ function validateTierRequirements(talentId, points, currentTalents) {
     
     // Check if previous tier has enough points
     const tier1Talents = ['pet-emojis', 'lore-mastery', 'lucky-charm'];
-    const tier2Talents = ['avatar-borders', 'chat-colors'];
+    const tier2Talents = ['font-styles', 'stardom', 'profile-mastery', 'lucky', 'spooky', 'charming'];
     
     if (talentTier === 2) {
         const tier1Points = tier1Talents.reduce((sum, talent) => sum + (currentTalents[talent] || 0), 0);
@@ -779,9 +902,9 @@ function validateTierRequirements(talentId, points, currentTalents) {
             return { valid: false, error: 'Need 5 points in Tier 2 to unlock Tier 3' };
         }
         
-        // Font Style Mastery requires Lore Mastery 5/5
-        if (talentId === 'font-style-mastery' && (currentTalents['lore-mastery'] || 0) < 5) {
-            return { valid: false, error: 'Requires Lore Mastery 5/5' };
+        // Blessing of Fortune requires Lucky 5/5
+        if (talentId === 'blessing-of-fortune' && (currentTalents['lucky'] || 0) < 5) {
+            return { valid: false, error: 'Requires Lucky 5/5' };
         }
     }
     
@@ -790,7 +913,7 @@ function validateTierRequirements(talentId, points, currentTalents) {
 
 app.post('/api/talents/reset', requireAuth, (req, res) => {
     // Get total points spent
-    db.all('SELECT SUM(points) as totalPoints FROM user_talents WHERE user_id = ?', [req.session.userId], (err, result) => {
+    db.all('SELECT SUM(points) as totalPoints FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err, result) => {
         if (err) {
             return res.status(500).json({ error: 'Failed to calculate reset' });
         }
@@ -798,7 +921,7 @@ app.post('/api/talents/reset', requireAuth, (req, res) => {
         const pointsToRefund = result[0]?.totalPoints || 0;
         
         // Clear all talents and refund skill points
-        db.run('DELETE FROM user_talents WHERE user_id = ?', [req.session.userId], (err) => {
+        db.run('DELETE FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err) => {
             if (err) {
                 return res.status(500).json({ error: 'Failed to reset talents' });
             }
