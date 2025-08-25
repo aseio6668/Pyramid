@@ -1,18 +1,18 @@
-# MasterCredits Casino
+# AseioTech Pyramid Gaming Platform
 
-A fun, fake-money casino website featuring classic games with unique themes. Built with Node.js, Java, and SQLite for easy hosting and deployment.
+A comprehensive web-based gaming platform featuring multiple handcrafted games for education and entertainment. Built with Node.js, Java, and SQLite for easy deployment and scalability.
 
-## 🎮 Features
+## 🎮 Platform Features
 
-- **User System**: Registration with homebrew captcha, secure login, profile management
-- **Games**: 
-  - ☕ **Coffee Blackjack**: Classic 21 with a caffeinated twist
-  - 🤠 **Western Coinflip**: Old west coin tossing adventure  
-  - 🚀 **Starbound Slots**: Space dogs exploring the galaxy
-- **Progression**: Level system with experience points and skill rewards
-- **Social**: Global chat with autonomous moderation
-- **Management**: Full admin panel with user management and backups
-- **Currency**: MasterCredits (MC) - fake money for entertainment only
+- **Unified Account System**: Single login for all games with centralized profile management
+- **Multiple Games**: 
+  - 🎰 **MasterCredits Casino**: Complete fake-money casino with blackjack, slots, coinflip, and more
+  - 🏃 **Pyramid Runner**: Classic 2D platformer adventure game
+  - 🚀 **More Coming Soon**: FPS, Fighting, and Multiplayer games in development
+- **Cross-Game Progression**: Platform-wide user levels and achievement tracking
+- **Social Features**: Global chat, leaderboards, and community features
+- **Admin Panel**: Comprehensive management tools for games and users
+- **Educational Focus**: All games designed for learning and entertainment - completely free with no ads
 
 ## 🚀 Quick Start
 
@@ -27,7 +27,7 @@ A fun, fake-money casino website featuring classic games with unique themes. Bui
 1. **Clone or download the project**
 ```bash
 git clone <repository-url>
-cd mastercredits
+cd pyramid
 ```
 
 2. **Install Node.js dependencies**
@@ -54,72 +54,91 @@ npm run compile-java
 npm start
 ```
 
-6. **Visit your casino**
-   - Main site: http://localhost:3000
+6. **Visit your gaming platform**
+   - Main platform: http://localhost:3000
+   - MasterCredits Casino: http://localhost:3000/games/mastercredits  
+   - Pyramid Runner: http://localhost:3000/games/pyramidrunner
    - Admin panel: http://localhost:3000/admin (admin/admin)
 
 ## 📁 File Structure
 
 ```
-mastercredits/
-├── server.js                 # Main Node.js server
-├── package.json              # Node.js dependencies
-├── public/                   # Static web files
-│   ├── index.html           # Main website
-│   ├── admin.html           # Admin panel
-│   ├── css/styles.css       # All styling
-│   └── js/
-│       ├── app.js           # Main client application
-│       └── games.js         # Game interfaces
-├── java/                     # Java game engine
+pyramid/
+├── server.js                     # Main Node.js server
+├── package.json                  # Node.js dependencies
+├── public/                       # Static web files
+│   ├── platform.html            # Main platform page
+│   ├── index.html               # MasterCredits Casino
+│   ├── pyramidrunner.html       # Pyramid Runner game
+│   ├── admin.html               # Admin panel
+│   ├── css/
+│   │   ├── platform.css         # Platform styling
+│   │   └── styles.css           # Game-specific styling
+│   ├── js/
+│   │   ├── platform.js          # Platform management
+│   │   ├── app.js               # MasterCredits game logic
+│   │   ├── pyramidrunner.js     # Pyramid Runner game
+│   │   ├── games.js             # Game interfaces
+│   │   └── talents.js           # Talent tree system
+│   └── games/                   # Individual game assets
+├── java/                         # Java game engine (for MasterCredits)
 │   ├── src/com/mastercredits/
-│   │   └── GameEngine.java  # Game logic processor
-│   ├── build/               # Compiled Java classes
-│   └── lib/                 # Java dependencies
-├── database/                 # SQLite database
-├── uploads/                  # User avatars
-├── backups/                  # Automatic backups
-└── README.md                # This file
+│   │   └── GameEngine.java      # Casino game logic processor
+│   ├── build/                   # Compiled Java classes
+│   └── lib/                     # Java dependencies
+├── database/                     # SQLite database
+├── uploads/                      # User avatars
+├── backups/                      # Automatic backups
+└── README.md                    # This file
 ```
 
-## 🎯 Game Configuration
+## 🎯 Games Overview
 
-### Default Settings
-- Starting balance: 100,000 MC
-- Free handout: 10,000 MC (when balance < 1,000 MC)
-- Handout cooldown: 30 seconds
-- Experience per level: Level × 1000 XP
-- Skill points per level: 10 points
-- Level up bonus: Level × 5,000 MC
+### MasterCredits Casino
+A comprehensive fake-money casino featuring:
+- **Games**: Blackjack, Coinflip, Starbound Slots, Dice games, and Blacksmith Forge
+- **Starting Balance**: 100,000 MC (MasterCredits)
+- **Free Handouts**: 10,000 MC when balance drops below 1,000 MC
+- **Progression**: Level-based XP system with skill points and talents
+- **Betting Limits**: 
+  - Blackjack: 1,000 - 100,000 MC per hand
+  - Coinflip: 500 - 50,000 MC per flip
+  - Starbound Slots: 100 - 10,000 MC per line (1-20 lines)
 
-### Game Limits
-- **Blackjack**: 1,000 - 100,000 MC per hand
-- **Coinflip**: 500 - 50,000 MC per flip
-- **Starbound**: 100 - 10,000 MC per line (1-20 lines)
+### Pyramid Runner
+A 2D platformer adventure featuring:
+- **Character**: Play as Aseio, an ancient explorer
+- **Quest**: Find the Pyramid of Infinite Knowledge
+- **Gameplay**: Classic platforming with jumping, running, and exploration
+- **Scoring**: High score system with multiple levels
+- **Theme**: Ancient Egyptian adventure setting
 
 ## 👑 Admin Features
 
 Access the admin panel at `/admin` with credentials `admin/admin` (changeable in settings).
 
-### Dashboard
-- User statistics and activity
-- Game play metrics
-- Real-time system monitoring
+### Platform Dashboard
+- Cross-game user statistics and activity
+- Individual game performance metrics  
+- Real-time system monitoring across all games
 
 ### User Management
-- View all users and their stats
-- Search and filter users
-- Modify user balances and levels
+- View all platform users and their progress
+- Search and filter users by game activity
+- Modify user stats across different games
+- Platform-wide user level management
 
 ### Game Analytics
-- Track game performance
-- Monitor house edge
-- View payout statistics
+- MasterCredits casino performance tracking
+- Pyramid Runner high score leaderboards
+- Cross-game engagement metrics
+- Revenue simulation analytics (fake money)
 
 ### System Tools
-- Manual database backups
-- Chat moderation tools
-- Maintenance mode toggle
+- Manual database backups for all game data
+- Global chat moderation tools
+- Platform maintenance mode toggle
+- Game-specific configuration management
 
 ## 🔧 Deployment
 
@@ -148,7 +167,7 @@ Access the admin panel at `/admin` with credentials `admin/admin` (changeable in
 4. **Use PM2 for production**:
    ```bash
    npm install -g pm2
-   pm2 start server.js --name "mastercredits"
+   pm2 start server.js --name "pyramid-platform"
    pm2 startup
    pm2 save
    ```
@@ -168,31 +187,49 @@ CMD ["npm", "start"]
 
 Build and run:
 ```bash
-docker build -t mastercredits .
-docker run -p 3000:3000 mastercredits
+docker build -t pyramid-platform .
+docker run -p 3000:3000 pyramid-platform
 ```
 
 ## 🔒 Security Notes
 
-- **No real money**: This is entertainment only - no real currency transactions
-- **Secure passwords**: Change the admin password on first setup
-- **Regular backups**: Automated daily backups at 2 AM
-- **Chat moderation**: Automatic profanity filtering and spam prevention
-- **Rate limiting**: Protection against automated abuse
+- **Educational Platform**: All games are free and for entertainment/education only
+- **No Real Transactions**: No real money or payments involved anywhere on the platform
+- **Secure Admin Access**: Change the admin password on first setup
+- **Regular Backups**: Automated daily backups at 2 AM for all platform data
+- **Chat Moderation**: Platform-wide chat filtering and spam prevention
+- **Rate Limiting**: Protection against automated abuse across all games
+- **Safe Gaming**: All games designed to promote fun without gambling addiction risks
 
 ## 🎨 Customization
 
-### Themes
-Edit `public/css/styles.css` to customize the early 2000s aesthetic with modern touches.
+### Platform Themes
+- Edit `public/css/platform.css` for main platform styling
+- Edit `public/css/styles.css` for individual game themes
+- Customize the pyramid visual hierarchy and game icons
 
-### Games
+### Adding New Games
+1. Create new HTML file in `public/` directory
+2. Add corresponding JavaScript file in `public/js/`
+3. Update `public/platform.html` to include new game in navigation
+4. Add game routes in `server.js`
+
+### MasterCredits Casino Customization
 Modify `java/src/com/mastercredits/GameEngine.java` to adjust:
-- Payout rates
-- Game mechanics  
-- New game types
+- Payout rates and game balance
+- New casino game mechanics
+- Talent tree configurations
 
-### Avatars
-Add your own avatar images to `public/images/avatars/` (recommended: 150x150px)
+### Pyramid Runner Customization
+Edit `public/js/pyramidrunner.js` to modify:
+- Level designs and challenges
+- Character mechanics and physics
+- Scoring and progression systems
+
+### Platform Features
+- Add custom avatar images to `uploads/avatars/` (recommended: 150x150px)
+- Customize cross-game progression in platform JavaScript
+- Modify unified user experience elements
 
 ## 🐛 Troubleshooting
 
@@ -223,7 +260,7 @@ lsof -ti:3000 | xargs kill -9
 ### Logs
 Check console output for detailed error messages. Enable debug mode:
 ```bash
-DEBUG=mastercredits:* npm start
+DEBUG=pyramid:* npm start
 ```
 
 ## 📞 Support
@@ -234,12 +271,20 @@ For issues and support:
 3. Ensure database permissions are correct
 4. Try restarting the application
 
+## 🚀 Future Development
+
+The Pyramid platform is designed for continuous expansion:
+- **Upcoming Games**: FPS shooters, fighting games, multiplayer experiences
+- **Platform Features**: Achievement system, tournaments, social features
+- **Educational Content**: Game development tutorials, coding challenges
+- **Community Tools**: User-generated content, modding support
+
 ## 📄 License
 
-This project is provided as-is for entertainment purposes. No real money gambling is supported or endorsed.
+This project is provided as-is for educational and entertainment purposes. All games are free and designed to promote learning and fun without any monetary risk.
 
-**Important**: This is a fake money casino for entertainment only. No real money transactions occur.
+**Educational Mission**: The AseioTech Pyramid platform demonstrates web development techniques, game design principles, and full-stack development practices.
 
 ---
 
-Made with ❤️ for fun and entertainment!
+Made with ❤️ by AseioTech for education and entertainment! 🔺
