@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinata Party - MasterCredits Casino</title>
+    <link rel="stylesheet" href="/css/platform.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="pinataparty-styles.css">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- Pyramid Panel -->
+    <div class="pyramid-panel">
+        <div class="container">
+            <div class="panel-content">
+                <div class="pyramid-logo-section">
+                    <span class="pyramid-icon">🔺</span>
+                    <span class="panel-title">Pyramid Panel</span>
+                </div>
+                <nav class="panel-nav">
+                    <a href="/" class="nav-link">Games</a>
+                    <a href="/games/mastercredits" class="nav-link">Casino</a>
+                </nav>
+                <div class="profile-section">
+                    <div id="userProfile" class="user-profile" style="display: none;">
+                        <div class="profile-avatar">
+                            <img id="profileAvatarIcon" src="" alt="Avatar">
+                        </div>
+                        <span id="profileUsername">Player</span>
+                        <div class="profile-menu">
+                            <button class="profile-btn" onclick="window.PlatformAPI.showProfile()">Profile</button>
+                            <button class="logout-btn" onclick="window.PlatformAPI.logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div id="authSection" class="auth-section">
+                        <button class="login-btn" onclick="window.PlatformAPI.showLogin()">Login</button>
+                        <button class="register-btn" onclick="window.PlatformAPI.showRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <header class="header">
+            <div class="container">
+                <div class="logo-section">
+                    <img src="/images/logo.svg" alt="MasterCredits" class="logo">
+                    <h1>MasterCredits Casino</h1>
+                </div>
+                <nav class="nav-menu">
+                    <a href="/games/mastercredits">Back to Casino</a>
+                </nav>
+                <div class="user-info">
+                    <div id="userBalance" class="balance-display">
+                        <span class="balance-label">Balance:</span>
+                        <span id="mcBalance" class="balance-amount">MC: --</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Content -->
+        <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="game-title">
+                <span class="party-icon">🎉</span>
+                <h1>Pinata Party</h1>
+                <span class="pinata-icon">🪅</span>
+            </div>
+            <div class="player-balance">
+                <span class="balance-label">MC Balance:</span>
+                <span id="playerBalance" class="balance-amount">--</span>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area">
+            
+            <!-- Betting Section -->
+            <div id="bettingSection" class="betting-section">
+                <div class="betting-card">
+                    <h2>🎯 Choose Your Bet</h2>
+                    <div class="bet-description">
+                        <p>Hit a pinata and discover the treasures inside! Each pinata contains random prizes that may be worth more or less than your bet.</p>
+                    </div>
+                    
+                    <div class="bet-input-section">
+                        <label for="betAmount">Bet Amount (MC):</label>
+                        <input type="number" id="betAmount" min="500" step="100" value="2000" class="bet-input">
+                        <div class="quick-bet-buttons">
+                            <button onclick="setBetAmount(1000)">1K</button>
+                            <button onclick="setBetAmount(2500)">2.5K</button>
+                            <button onclick="setBetAmount(5000)">5K</button>
+                            <button onclick="setBetAmount(10000)">10K</button>
+                        </div>
+                    </div>
+
+                    <div class="pinata-selection">
+                        <h3>🪅 Select Your Pinata</h3>
+                        <div class="pinata-options">
+                            <div class="pinata-option" data-type="donkey" onclick="selectPinata('donkey')">
+                                <div class="pinata-preview donkey-pinata">🫏</div>
+                                <span class="pinata-name">Classic Donkey</span>
+                                <span class="pinata-desc">Traditional and reliable</span>
+                            </div>
+                            <div class="pinata-option" data-type="star" onclick="selectPinata('star')">
+                                <div class="pinata-preview star-pinata">⭐</div>
+                                <span class="pinata-name">Lucky Star</span>
+                                <span class="pinata-desc">Wishes and dreams</span>
+                            </div>
+                            <div class="pinata-option" data-type="heart" onclick="selectPinata('heart')">
+                                <div class="pinata-preview heart-pinata">💖</div>
+                                <span class="pinata-name">Love Heart</span>
+                                <span class="pinata-desc">Sweet surprises</span>
+                            </div>
+                            <div class="pinata-option" data-type="rainbow" onclick="selectPinata('rainbow')">
+                                <div class="pinata-preview rainbow-pinata">🌈</div>
+                                <span class="pinata-name">Rainbow Magic</span>
+                                <span class="pinata-desc">Colorful treasures</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="startGameBtn" class="start-game-btn" onclick="startPinataParty()" disabled>
+                        🏏 Hit the Pinata!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Game Play Area -->
+            <div id="gamePlayArea" class="game-play-area hidden">
+                <div class="party-atmosphere">
+                    <div class="confetti" id="confetti"></div>
+                    <div class="streamers"></div>
+                </div>
+                
+                <!-- Pinata Display -->
+                <div class="pinata-stage">
+                    <div class="hanging-rope"></div>
+                    <div id="pinataDisplay" class="pinata-display">
+                        <!-- Pinata will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Bat and Action Area -->
+                <div class="action-area">
+                    <div id="batDisplay" class="bat-display">
+                        <div class="bat-handle">🏏</div>
+                    </div>
+                    <div class="action-text">
+                        <h3 id="actionStatus">Get Ready to Swing!</h3>
+                        <div id="swingCounter" class="swing-counter">Swings: 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prize Reveal Section -->
+            <div id="prizeSection" class="prize-section hidden">
+                <div class="prize-explosion">
+                    <h2>🎊 Pinata Prizes! 🎊</h2>
+                    <div id="prizesList" class="prizes-list">
+                        <!-- Prizes will be displayed here -->
+                    </div>
+                    
+                    <div class="prize-summary">
+                        <div class="total-calculation">
+                            <div class="calc-row">
+                                <span class="calc-label">Your Bet:</span>
+                                <span id="betAmountDisplay" class="calc-value">0 MC</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Prize Value:</span>
+                                <span id="prizeValueDisplay" class="calc-value">0 MC</span>
+                            </div>
+                            <div class="calc-row result-row">
+                                <span class="calc-label">Result:</span>
+                                <span id="resultDisplay" class="calc-result">0 MC</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-actions">
+                        <button class="play-again-btn" onclick="playAgain()">
+                            🎉 Play Again
+                        </button>
+                        <button class="back-to-casino-btn" onclick="window.location.href='/games/mastercredits'">
+                            🎰 Back to Casino
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="/js/platform.js"></script>
+    <script src="pinataparty-game.js"></script>
+    
+    <script>
+        // Initialize platform when page loads
+        window.addEventListener('load', () => {
+            // Initialize platform if available
+            if (window.PlatformAPI) {
+                window.PlatformAPI.checkAuthStatus();
+            }
+            
+            // Initialize Pinata Party game
+            initializePinataParty();
+        });
+    </script>
+</body>
+</html>

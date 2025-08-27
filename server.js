@@ -50,10 +50,44 @@ app.use(session({
     }
 }));
 
+// Define routes BEFORE static middleware to avoid conflicts
+// Platform routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'index.html'));
+});
+
+app.get('/games', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'index.html'));
+});
+
+app.get('/games/mastercredits', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'mastercredits', 'index.html'));
+});
+
+app.get('/games/pyramidrunner', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'pyramidrunner', 'index.html'));
+});
+
+app.get('/games/galaxv', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'galaxv', 'index.html'));
+});
+
+app.get('/games/fighterfame', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'fighterfame', 'index.html'));
+});
+
+app.get('/games/par4', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'par4', 'index.html'));
+});
+
+app.get('/games/pinataparty', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'pinataparty', 'index.html'));
+});
+
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
-const db = new sqlite3.Database('./database/mastercredits.db');
+const db = new sqlite3.Database('./pyramid.db');
 
 db.serialize(() => {
     // Platform Users - main user table for all games
@@ -91,6 +125,29 @@ db.serialize(() => {
         current_character TEXT DEFAULT 'default',
         unlocked_characters TEXT DEFAULT '[]',
         power_ups TEXT DEFAULT '[]',
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )`);
+
+    // Game-specific data for GalexV
+    db.run(`CREATE TABLE IF NOT EXISTS galaxv_data (
+        user_id INTEGER PRIMARY KEY,
+        high_score INTEGER DEFAULT 0,
+        stages_completed INTEGER DEFAULT 0,
+        total_kills INTEGER DEFAULT 0,
+        games_played INTEGER DEFAULT 0,
+        favorite_ship TEXT DEFAULT 'viper',
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )`);
+
+    // Game-specific data for FighterFame
+    db.run(`CREATE TABLE IF NOT EXISTS fighterfame_data (
+        user_id INTEGER PRIMARY KEY,
+        wins INTEGER DEFAULT 0,
+        losses INTEGER DEFAULT 0,
+        tournament_wins INTEGER DEFAULT 0,
+        favorite_fighter TEXT DEFAULT 'ryu',
+        win_streak INTEGER DEFAULT 0,
+        total_fights INTEGER DEFAULT 0,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
@@ -201,19 +258,6 @@ function createCaptchaImage(text) {
     
     return `data:image/svg+xml;base64,${Buffer.from(canvas).toString('base64')}`;
 }
-
-// Platform routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'platform.html'));
-});
-
-app.get('/games/mastercredits', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/games/pyramidrunner', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pyramidrunner.html'));
-});
 
 app.get('/admin', requireAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
@@ -348,6 +392,7 @@ app.post('/api/admin/change-password', requireAdmin, (req, res) => {
     });
 });
 
+
 app.get('/api/captcha', (req, res) => {
     const captcha = generateCaptcha();
     req.session.captcha = captcha;
@@ -394,6 +439,16 @@ app.post('/api/register', (req, res) => {
         // Initialize Pyramid Runner data for new user
         db.run('INSERT INTO pyramidrunner_data (user_id) VALUES (?)', [userId], (prErr) => {
             if (prErr) console.error('Failed to initialize Pyramid Runner data:', prErr);
+        });
+        
+        // Initialize GalexV data for new user
+        db.run('INSERT INTO galaxv_data (user_id) VALUES (?)', [userId], (gvErr) => {
+            if (gvErr) console.error('Failed to initialize GalexV data:', gvErr);
+        });
+        
+        // Initialize FighterFame data for new user
+        db.run('INSERT INTO fighterfame_data (user_id) VALUES (?)', [userId], (ffErr) => {
+            if (ffErr) console.error('Failed to initialize FighterFame data:', ffErr);
         });
         
         req.session.userId = userId;
@@ -451,6 +506,38 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
+// Free funds endpoint
+app.post('/api/claim-free-funds', requireAuth, (req, res) => {
+    db.get('SELECT mc_balance FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (err, data) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        
+        if (!data) {
+            return res.status(404).json({ success: false, message: 'Player data not found' });
+        }
+        
+        if (data.mc_balance >= 1000) {
+            return res.status(400).json({ success: false, message: 'You can only claim free funds when you have less than 1000 MC' });
+        }
+        
+        const freeAmount = 10000;
+        const newBalance = data.mc_balance + freeAmount;
+        
+        db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
+            if (updateErr) {
+                return res.status(500).json({ success: false, message: 'Failed to update balance' });
+            }
+            
+            res.json({ 
+                success: true, 
+                newBalance: newBalance,
+                amount: freeAmount
+            });
+        });
+    });
+});
+
 // Platform profile endpoint
 app.get('/api/profile', requireAuth, (req, res) => {
     // Get main user data
@@ -497,16 +584,41 @@ app.get('/api/user', requireAuth, (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
         
-        res.json({
-            username: user.username,
-            mcBalance: user.mc_balance || 100000,
-            level: user.level || 1,
-            experience: user.experience || 0,
-            skillPoints: user.skill_points || 0,
-            avatarPath: user.avatar_path,
-            unlockedAvatars: JSON.parse(user.unlocked_avatars || '[]'),
-            unlockedEmojis: JSON.parse(user.unlocked_emojis || '[]')
-        });
+        // If MasterCredits data doesn't exist, initialize it
+        if (!user.mc_balance && user.mc_balance !== 0) {
+            db.run('INSERT OR IGNORE INTO mastercredits_data (user_id) VALUES (?)', [req.session.userId], (initErr) => {
+                if (initErr) console.error('Failed to initialize MasterCredits data:', initErr);
+                
+                // Re-fetch the user data with the initialized MC data
+                db.get('SELECT * FROM users u LEFT JOIN mastercredits_data mc ON u.id = mc.user_id WHERE u.id = ?', [req.session.userId], (refetchErr, refetchedUser) => {
+                    if (refetchErr || !refetchedUser) {
+                        return res.status(404).json({ error: 'User not found after initialization' });
+                    }
+                    
+                    res.json({
+                        username: refetchedUser.username,
+                        mcBalance: refetchedUser.mc_balance || 100000,
+                        level: refetchedUser.level || 1,
+                        experience: refetchedUser.experience || 0,
+                        skillPoints: refetchedUser.skill_points || 0,
+                        avatarPath: refetchedUser.avatar_path,
+                        unlockedAvatars: JSON.parse(refetchedUser.unlocked_avatars || '[]'),
+                        unlockedEmojis: JSON.parse(refetchedUser.unlocked_emojis || '[]')
+                    });
+                });
+            });
+        } else {
+            res.json({
+                username: user.username,
+                mcBalance: user.mc_balance || 100000,
+                level: user.level || 1,
+                experience: user.experience || 0,
+                skillPoints: user.skill_points || 0,
+                avatarPath: user.avatar_path,
+                unlockedAvatars: JSON.parse(user.unlocked_avatars || '[]'),
+                unlockedEmojis: JSON.parse(user.unlocked_emojis || '[]')
+            });
+        }
     });
 });
 
@@ -628,11 +740,138 @@ function updateUserStats(userId, experienceGained, callback) {
             if (leveledUp) {
                 const levelUpReward = newLevel * 5000;
                 db.run('UPDATE mastercredits_data SET mc_balance = mc_balance + ? WHERE user_id = ?', [levelUpReward, userId]);
+                
+                // Sync MasterCredits level with platform level
+                db.run('UPDATE users SET platform_level = ?, platform_experience = platform_experience + ? WHERE id = ?', 
+                    [newLevel, experienceGained, userId]);
+            } else {
+                // Still add experience to platform even if no level up
+                db.run('UPDATE users SET platform_experience = platform_experience + ? WHERE id = ?', 
+                    [experienceGained, userId]);
             }
             
             callback(null, { leveledUp, newLevel, newSkillPoints, levelUpReward: leveledUp ? newLevel * 5000 : 0 });
         });
     });
+}
+
+// Par4 Golf Betting Game Handler
+function handlePar4Game(requestData, mcData, callback) {
+    const { betAmount, action, gameData } = requestData;
+    
+    if (action === 'start_round') {
+        // Starting a new round - deduct bet amount
+        const totalBetAmount = betAmount;
+        const newBalance = mcData.mc_balance - totalBetAmount;
+        
+        if (newBalance < 0) {
+            return callback(new Error('Insufficient balance'));
+        }
+        
+        // Generate basic experience for starting a round
+        const experienceGained = Math.floor(totalBetAmount / 1000) + 5; // Base 5 + bonus based on bet
+        
+        callback(null, {
+            success: true,
+            betAmount: totalBetAmount,
+            payout: 0,
+            newBalance: newBalance,
+            experienceGained: experienceGained,
+            data: {
+                action: 'round_started',
+                course: gameData.course,
+                golfer: gameData.golfer,
+                bets: gameData.pregameBets
+            }
+        });
+    } else if (action === 'end_round') {
+        // Ending a round - calculate payouts
+        const { shotsUsed, isHole, shotsOverPar, payouts } = gameData;
+        
+        // Calculate experience based on performance
+        let experienceGained = 10; // Base experience
+        if (isHole) {
+            experienceGained += 15; // Bonus for completing hole
+            if (shotsOverPar <= 0) {
+                experienceGained += 20; // Bonus for par or better
+            }
+            if (shotsUsed === 1) {
+                experienceGained += 50; // Huge bonus for hole in one
+            }
+        }
+        
+        // Add bet amount to experience calculation
+        experienceGained += Math.floor(payouts.total / 5000);
+        
+        const newBalance = mcData.mc_balance + payouts.total;
+        
+        callback(null, {
+            success: true,
+            betAmount: 0, // No bet deduction on round end
+            payout: payouts.total,
+            newBalance: newBalance,
+            experienceGained: experienceGained,
+            data: {
+                action: 'round_ended',
+                shotsUsed: shotsUsed,
+                isHole: isHole,
+                shotsOverPar: shotsOverPar,
+                payouts: payouts
+            }
+        });
+    } else {
+        callback(new Error('Invalid Par4 action'));
+    }
+}
+
+// Pinata Party Game Handler
+function handlePinataPartyGame(requestData, mcData, callback) {
+    const { betAmount, action, gameData } = requestData;
+    
+    if (action === 'break_pinata') {
+        const newBalance = mcData.mc_balance - betAmount;
+        
+        if (newBalance < 0) {
+            return callback(new Error('Insufficient balance'));
+        }
+        
+        // Generate prizes based on the game's prize system
+        const { prizes, totalValue } = gameData.prizes;
+        const netResult = totalValue - betAmount;
+        const finalBalance = newBalance + totalValue;
+        
+        // Calculate experience based on performance
+        let experienceGained = 5; // Base experience
+        experienceGained += Math.floor(betAmount / 1000); // Bet size bonus
+        
+        if (netResult > 0) {
+            experienceGained += Math.floor(netResult / 2000); // Win bonus
+        }
+        
+        // Bonus for big wins
+        if (totalValue >= betAmount * 3) {
+            experienceGained += 15; // Big win bonus
+        }
+        if (totalValue >= betAmount * 5) {
+            experienceGained += 25; // Epic win bonus
+        }
+        
+        callback(null, {
+            success: true,
+            betAmount: betAmount,
+            payout: totalValue,
+            newBalance: finalBalance,
+            experienceGained: experienceGained,
+            data: {
+                action: 'pinata_broken',
+                prizes: prizes,
+                totalValue: totalValue,
+                netResult: netResult
+            }
+        });
+    } else {
+        callback(new Error('Invalid Pinata Party action'));
+    }
 }
 
 app.post('/api/play-game', requireAuth, (req, res) => {
@@ -663,6 +902,120 @@ app.post('/api/play-game', requireAuth, (req, res) => {
             playerHand: playerHand,
             dealerHand: dealerHand
         };
+        
+        // Handle Par4 golf betting game directly in Node.js
+        if (gameType === 'par4') {
+            handlePar4Game(req.body, mcData, (err, result) => {
+                if (err) {
+                    console.error('Par4 game error:', err);
+                    return res.status(500).json({ error: 'Game processing failed' });
+                }
+                
+                console.log('Par4 game result:', result);
+                
+                // Update balance
+                const newBalance = result.newBalance;
+                
+                db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
+                    if (updateErr) {
+                        return res.status(500).json({ error: 'Failed to update balance' });
+                    }
+                    
+                    // Log game session
+                    if (result.betAmount > 0) {
+                        db.run('INSERT INTO game_sessions (user_id, game_name, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?, ?)',
+                            [req.session.userId, 'par4', 'golf_betting', result.betAmount, result.payout || 0, JSON.stringify(result.data)]);
+                    }
+                    
+                    // Add experience
+                    if (result.experienceGained > 0) {
+                        updateUserStats(req.session.userId, result.experienceGained, (statErr, statResult) => {
+                            if (!statErr && statResult.leveledUp) {
+                                result.levelUp = statResult;
+                            }
+                            
+                            res.json({
+                                success: true,
+                                gameType: 'par4',
+                                betAmount: result.betAmount,
+                                payout: result.payout,
+                                newBalance: newBalance,
+                                experienceGained: result.experienceGained,
+                                data: result.data,
+                                levelUp: result.levelUp
+                            });
+                        });
+                    } else {
+                        res.json({
+                            success: true,
+                            gameType: 'par4',
+                            betAmount: result.betAmount,
+                            payout: result.payout,
+                            newBalance: newBalance,
+                            experienceGained: result.experienceGained,
+                            data: result.data
+                        });
+                    }
+                });
+            });
+            return;
+        }
+        
+        // Handle Pinata Party game directly in Node.js
+        if (gameType === 'pinataparty') {
+            handlePinataPartyGame(req.body, mcData, (err, result) => {
+                if (err) {
+                    console.error('Pinata Party game error:', err);
+                    return res.status(500).json({ error: 'Game processing failed' });
+                }
+                
+                console.log('Pinata Party game result:', result);
+                
+                // Update balance
+                const newBalance = result.newBalance;
+                
+                db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
+                    if (updateErr) {
+                        return res.status(500).json({ error: 'Failed to update balance' });
+                    }
+                    
+                    // Log game session
+                    db.run('INSERT INTO game_sessions (user_id, game_name, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?, ?)',
+                        [req.session.userId, 'pinataparty', 'party_game', result.betAmount, result.payout || 0, JSON.stringify(result.data)]);
+                    
+                    // Add experience
+                    if (result.experienceGained > 0) {
+                        updateUserStats(req.session.userId, result.experienceGained, (statErr, statResult) => {
+                            if (!statErr && statResult.leveledUp) {
+                                result.levelUp = statResult;
+                            }
+                            
+                            res.json({
+                                success: true,
+                                gameType: 'pinataparty',
+                                betAmount: result.betAmount,
+                                payout: result.payout,
+                                newBalance: newBalance,
+                                experienceGained: result.experienceGained,
+                                data: result.data,
+                                levelUp: result.levelUp
+                            });
+                        });
+                    } else {
+                        res.json({
+                            success: true,
+                            gameType: 'pinataparty',
+                            betAmount: result.betAmount,
+                            payout: result.payout,
+                            newBalance: newBalance,
+                            experienceGained: result.experienceGained,
+                            data: result.data
+                        });
+                    }
+                });
+            });
+            return;
+        }
         
         console.log(`Playing ${gameType} with data:`, gameData);
         callJavaGameEngine(gameType, gameData, (err, result) => {

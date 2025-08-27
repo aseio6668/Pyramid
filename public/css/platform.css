@@ -40,7 +40,120 @@ body {
     overflow-x: hidden;
 }
 
-/* AseioTech.com Top Banner */
+/* Pyramid Panel - New Top Banner */
+.pyramid-panel {
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    border-bottom: 3px solid var(--pyramid-gold);
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.panel-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pyramid-logo-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pyramid-icon {
+    font-size: 1.8rem;
+    color: var(--pyramid-gold);
+    filter: drop-shadow(0 0 8px rgba(243, 156, 18, 0.6));
+}
+
+.panel-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, var(--pyramid-gold), #FFF);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.panel-nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.panel-nav .nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.panel-nav .nav-link:hover,
+.panel-nav .nav-link.active {
+    color: var(--pyramid-gold);
+    background: rgba(243, 156, 18, 0.1);
+    transform: translateY(-1px);
+}
+
+.profile-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.profile-avatar img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--pyramid-gold);
+}
+
+.auth-section {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.login-btn, .register-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--pyramid-gold);
+    background: transparent;
+    color: var(--pyramid-gold);
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.register-btn {
+    background: var(--pyramid-gold);
+    color: var(--pyramid-primary);
+}
+
+.login-btn:hover, .register-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+/* Legacy AseioTech Banner (kept for compatibility) */
 .aseiotech-banner {
     background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
     border-bottom: 2px solid var(--pyramid-gold);
@@ -559,6 +672,170 @@ body {
     background: var(--pyramid-secondary);
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* Game Banners - New Banner Style */
+.games-banner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.game-banner {
+    position: relative;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    min-height: 200px;
+    display: flex;
+    backdrop-filter: blur(10px);
+}
+
+.game-banner:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--pyramid-gold);
+    box-shadow: 0 15px 40px rgba(243, 156, 18, 0.2);
+}
+
+.banner-art {
+    flex: 0 0 200px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.game-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+}
+
+.casino-bg {
+    background: radial-gradient(circle at center, #E74C3C 0%, #C0392B 50%, #8B2635 100%);
+}
+
+.platform-bg {
+    background: radial-gradient(circle at center, #3498DB 0%, #2980B9 50%, #1F5582 100%);
+}
+
+.game-banner:hover .game-background {
+    opacity: 0.5;
+}
+
+.game-icon.large {
+    font-size: 4rem;
+    color: var(--pyramid-gold);
+    z-index: 10;
+    position: relative;
+    filter: drop-shadow(0 0 20px rgba(243, 156, 18, 0.6));
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.banner-info {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.game-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, var(--pyramid-gold), #FFF);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.game-tagline {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.game-features-brief {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.game-features-brief .feature {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+}
+
+.play-overlay {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.game-banner:hover .play-overlay {
+    opacity: 1;
+    transform: translateX(-5px);
+}
+
+.play-text {
+    background: var(--pyramid-gold);
+    color: var(--pyramid-primary);
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Responsive Game Banners */
+@media (max-width: 768px) {
+    .games-banner-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .game-banner {
+        flex-direction: column;
+        min-height: auto;
+    }
+    
+    .banner-art {
+        flex: 0 0 120px;
+        width: 100%;
+    }
+    
+    .game-icon.large {
+        font-size: 3rem;
+    }
+    
+    .banner-info {
+        padding: 1.5rem;
+    }
+    
+    .game-name {
+        font-size: 1.5rem;
+    }
 }
 
 /* Footer */

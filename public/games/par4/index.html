@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Par4 Golf Betting - MasterCredits Casino</title>
+    <link rel="stylesheet" href="/css/platform.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="par4-styles.css">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- Pyramid Panel -->
+    <div class="pyramid-panel">
+        <div class="container">
+            <div class="panel-content">
+                <div class="pyramid-logo-section">
+                    <span class="pyramid-icon">🔺</span>
+                    <span class="panel-title">Pyramid Panel</span>
+                </div>
+                <nav class="panel-nav">
+                    <a href="/" class="nav-link">Games</a>
+                    <a href="/games/mastercredits" class="nav-link">Casino</a>
+                </nav>
+                <div class="profile-section">
+                    <div id="userProfile" class="user-profile" style="display: none;">
+                        <div class="profile-avatar">
+                            <img id="profileAvatarIcon" src="" alt="Avatar">
+                        </div>
+                        <span id="profileUsername">Player</span>
+                        <div class="profile-menu">
+                            <button class="profile-btn" onclick="window.PlatformAPI.showProfile()">Profile</button>
+                            <button class="logout-btn" onclick="window.PlatformAPI.logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div id="authSection" class="auth-section">
+                        <button class="login-btn" onclick="window.PlatformAPI.showLogin()">Login</button>
+                        <button class="register-btn" onclick="window.PlatformAPI.showRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <header class="header">
+            <div class="container">
+                <div class="logo-section">
+                    <img src="/images/logo.svg" alt="MasterCredits" class="logo">
+                    <h1>MasterCredits Casino</h1>
+                </div>
+                <nav class="nav-menu">
+                    <a href="/games/mastercredits">Back to Casino</a>
+                </nav>
+                <div class="user-info">
+                    <div id="userBalance" class="balance-display">
+                        <span class="balance-label">Balance:</span>
+                        <span id="mcBalance" class="balance-amount">MC: --</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Content -->
+        <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="game-title">
+                <span class="golf-icon">⛳</span>
+                <h1>Par4 Golf Betting</h1>
+            </div>
+            <div class="player-balance">
+                <span class="balance-label">MC Balance:</span>
+                <span id="playerBalance" class="balance-amount">--</span>
+            </div>
+        </div>
+
+        <!-- Game States -->
+        
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="game-screen active">
+            <div class="loading-content">
+                <div class="golf-loading">
+                    <div class="golf-ball"></div>
+                    <div class="golf-trajectory"></div>
+                </div>
+                <h2>Preparing the Course...</h2>
+                <div class="loading-bar">
+                    <div id="loadingProgress" class="loading-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Setup Screen -->
+        <div id="setupScreen" class="game-screen">
+            <div class="setup-content">
+                <h2>New Golf Round</h2>
+                
+                <!-- Course Preview -->
+                <div class="course-preview">
+                    <div class="course-info">
+                        <h3 id="courseName">Loading Course...</h3>
+                        <div class="course-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Par:</span>
+                                <span id="coursePar" class="detail-value">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Distance:</span>
+                                <span id="courseDistance" class="detail-value">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Weather:</span>
+                                <span id="courseWeather" class="detail-value">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Wind:</span>
+                                <span id="courseWind" class="detail-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="courseMiniMap" class="course-mini-map">
+                        <!-- Course layout will be generated here -->
+                    </div>
+                </div>
+
+                <!-- Golfer Profile -->
+                <div class="golfer-profile">
+                    <div class="golfer-avatar">
+                        <div id="golferAvatar" class="golfer-icon">🏌️</div>
+                    </div>
+                    <div class="golfer-info">
+                        <h4 id="golferName">Loading Player...</h4>
+                        <div class="golfer-country">
+                            <span id="golferFlag">🏳️</span>
+                            <span id="golferCountry">Unknown</span>
+                        </div>
+                        <div class="golfer-stats">
+                            <div class="stat">
+                                <span class="stat-label">Power:</span>
+                                <span id="golferPower" class="stat-value">0.0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Accuracy:</span>
+                                <span id="golferAccuracy" class="stat-value">0.0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Putting:</span>
+                                <span id="golferPutting" class="stat-value">0.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Betting Options -->
+                <div class="betting-setup">
+                    <h3>Place Your Bets</h3>
+                    
+                    <!-- Bet Amount Input -->
+                    <div class="bet-input-section">
+                        <label for="betAmount">Base Bet Amount (MC):</label>
+                        <input type="number" id="betAmount" min="100" step="100" value="1000" class="bet-input">
+                        <div class="quick-bet-buttons">
+                            <button onclick="setBetAmount(500)">500</button>
+                            <button onclick="setBetAmount(1000)">1K</button>
+                            <button onclick="setBetAmount(5000)">5K</button>
+                            <button onclick="setBetAmount(10000)">10K</button>
+                        </div>
+                    </div>
+
+                    <!-- Pre-game Betting Options -->
+                    <div class="pregame-bets">
+                        <h4>Pre-Game Bets</h4>
+                        <div class="bet-options">
+                            <div class="bet-option" data-bet="hole-in-one">
+                                <span class="bet-name">Hole in One</span>
+                                <span id="holeInOneOdds" class="bet-odds">50x</span>
+                            </div>
+                            <div class="bet-option" data-bet="under-par">
+                                <span class="bet-name">Under Par</span>
+                                <span id="underParOdds" class="bet-odds">8x</span>
+                            </div>
+                            <div class="bet-option" data-bet="on-par">
+                                <span class="bet-name">On Par</span>
+                                <span id="onParOdds" class="bet-odds">2x</span>
+                            </div>
+                            <div class="bet-option" data-bet="safe-play">
+                                <span class="bet-name">Safe Play (Return bet if finished)</span>
+                                <span class="bet-odds">1x</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="startGameBtn" class="start-game-btn" onclick="startGame()">
+                        🏌️ Start Round
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Play Screen -->
+        <div id="gameScreen" class="game-screen">
+            <div class="game-content">
+                <!-- Course Visualization -->
+                <div class="course-display">
+                    <canvas id="golfCourse" width="800" height="400"></canvas>
+                    
+                    <!-- Game Info Overlay -->
+                    <div class="game-overlay">
+                        <div class="current-shot-info">
+                            <div class="shot-counter">
+                                <span>Shot:</span>
+                                <span id="currentShot">1</span>
+                                <span>/</span>
+                                <span id="maxShots">7</span>
+                            </div>
+                            <div class="distance-to-hole">
+                                <span>Distance:</span>
+                                <span id="distanceToHole">350y</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Live Betting Panel -->
+                        <div class="live-betting-panel">
+                            <div class="current-multipliers">
+                                <div class="multiplier" id="holeThisShotMultiplier">
+                                    <span class="mult-label">Hole This Shot:</span>
+                                    <span class="mult-value">25x</span>
+                                </div>
+                                <div class="multiplier" id="nextShotMultiplier">
+                                    <span class="mult-label">Next 2 Shots:</span>
+                                    <span class="mult-value">8x</span>
+                                </div>
+                            </div>
+                            
+                            <div class="betting-actions">
+                                <button id="betNowBtn" class="bet-action-btn bet-now" onclick="placeLiveBet()">
+                                    💰 Bet Now
+                                </button>
+                                <button id="waitBtn" class="bet-action-btn wait" onclick="waitForNextShot()">
+                                    ⏳ Wait
+                                </button>
+                            </div>
+                            
+                            <div class="active-bets">
+                                <h4>Active Bets:</h4>
+                                <div id="activeBetsList" class="bets-list">
+                                    <!-- Active bets will appear here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shot Animation Area -->
+                <div class="shot-animation">
+                    <div id="shotStatus" class="shot-status">Ready for shot...</div>
+                    <div class="shot-controls">
+                        <button id="takeShot" class="take-shot-btn" onclick="takeShot()">
+                            🏌️ Take Shot
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="game-screen">
+            <div class="results-content">
+                <div class="round-summary">
+                    <h2 id="roundResult">Round Complete!</h2>
+                    <div class="final-score">
+                        <span>Final Score:</span>
+                        <span id="finalScore">Par +2</span>
+                    </div>
+                    <div class="shots-taken">
+                        <span>Shots Taken:</span>
+                        <span id="shotsTaken">5</span>
+                    </div>
+                </div>
+
+                <div class="payout-summary">
+                    <h3>Payout Summary</h3>
+                    <div id="payoutBreakdown" class="payout-list">
+                        <!-- Payout details will be shown here -->
+                    </div>
+                    <div class="total-payout">
+                        <span>Total Payout:</span>
+                        <span id="totalPayout" class="payout-amount">0 MC</span>
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <button class="play-again-btn" onclick="newGame()">
+                        ⛳ Play Again
+                    </button>
+                    <button class="back-to-casino-btn" onclick="window.location.href='/games/mastercredits'">
+                        🎰 Back to Casino
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="/js/platform.js"></script>
+    <script src="par4-game.js"></script>
+    
+    <script>
+        // Initialize platform when page loads
+        window.addEventListener('load', () => {
+            // Initialize platform if available
+            if (window.PlatformAPI) {
+                window.PlatformAPI.checkAuthStatus();
+            }
+            
+            // Initialize Par4 game
+            initializePar4Game();
+        });
+    </script>
+</body>
+</html>

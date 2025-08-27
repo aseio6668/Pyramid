@@ -83,7 +83,17 @@ class MasterCreditsApp {
 
         document.getElementById('username').textContent = this.currentUser.username;
         document.getElementById('userLevel').textContent = `Level ${this.currentUser.level}`;
-        document.getElementById('mcBalance').textContent = `MC: ${this.formatMC(this.currentUser.mcBalance)}`;
+        // Update main balance (used by games)
+        const mainBalance = document.getElementById('mcBalance');
+        if (mainBalance) {
+            mainBalance.textContent = `MC: ${this.formatMC(this.currentUser.mcBalance)}`;
+        }
+        
+        // Update all section currency displays
+        this.updateSectionCurrencyDisplays();
+        
+        // Update Pyramid Panel
+        this.updatePyramidPanel();
         
         // Set avatar or use default
         const avatarPath = this.currentUser.avatarPath || this.getDefaultAvatar();
@@ -102,6 +112,76 @@ class MasterCreditsApp {
         if (window.talentTree) {
             window.talentTree.availablePoints = this.currentUser.skillPoints || 0;
             window.talentTree.updateSkillPointsDisplay();
+        }
+        
+        // Show free funds button if balance is under 1000 MC
+        this.updateFreeFundsButton();
+    }
+
+    updateSectionCurrencyDisplays() {
+        const sectionIds = ['homeMcBalance', 'gamesMcBalance', 'profileMcBalance', 'talentsMcBalance'];
+        let displayText = 'Login to view balance';
+        
+        if (this.currentUser && typeof this.currentUser.mcBalance !== 'undefined') {
+            displayText = `MC: ${this.formatMC(this.currentUser.mcBalance)}`;
+        }
+            
+        sectionIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = displayText;
+                element.style.opacity = (this.currentUser && typeof this.currentUser.mcBalance !== 'undefined') ? '1' : '0.6';
+            }
+        });
+
+        // Update header balance
+        const headerBalance = document.getElementById('headerMcBalance');
+        if (headerBalance) {
+            headerBalance.textContent = displayText;
+        }
+
+        // Update game balance with different format
+        const gameBalance = document.getElementById('gameMcBalance');
+        if (gameBalance) {
+            if (this.currentUser && typeof this.currentUser.mcBalance !== 'undefined') {
+                gameBalance.textContent = `Balance: ${this.formatMC(this.currentUser.mcBalance)} MC`;
+            } else {
+                gameBalance.textContent = 'Balance: -- MC';
+            }
+        }
+    }
+
+    updatePyramidPanel() {
+        if (this.currentUser) {
+            // Show user profile section, hide auth section
+            const userProfile = document.getElementById('userProfile');
+            const authSection = document.getElementById('authSection');
+            
+            if (userProfile && authSection) {
+                userProfile.style.display = 'flex';
+                authSection.style.display = 'none';
+                
+                // Update profile username
+                const profileUsername = document.getElementById('profileUsername');
+                if (profileUsername) {
+                    profileUsername.textContent = this.currentUser.username;
+                }
+                
+                // Update profile avatar
+                const profileAvatarIcon = document.getElementById('profileAvatarIcon');
+                if (profileAvatarIcon) {
+                    profileAvatarIcon.src = this.currentUser.avatarPath || this.getDefaultAvatar();
+                }
+            }
+        } else {
+            // Show auth section, hide user profile
+            const userProfile = document.getElementById('userProfile');
+            const authSection = document.getElementById('authSection');
+            
+            if (userProfile && authSection) {
+                userProfile.style.display = 'none';
+                authSection.style.display = 'flex';
+            }
         }
     }
 
@@ -126,6 +206,43 @@ class MasterCreditsApp {
 
     formatMC(amount) {
         return parseFloat(amount).toFixed(4);
+    }
+    
+    updateFreeFundsButton() {
+        const freeFundsContainer = document.getElementById('freeFundsContainer');
+        if (!freeFundsContainer) return;
+        
+        if (this.currentUser && this.currentUser.mcBalance < 1000) {
+            freeFundsContainer.style.display = 'block';
+        } else {
+            freeFundsContainer.style.display = 'none';
+        }
+    }
+    
+    async claimFreeFunds() {
+        if (!this.currentUser || this.currentUser.mcBalance >= 1000) {
+            this.showNotification('You can only claim free funds when you have less than 1000 MC', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/claim-free-funds', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.currentUser.mcBalance = result.newBalance;
+                this.updateUserDisplay();
+                this.showNotification(`Claimed ${this.formatMC(10000)} MC free funds!`, 'success');
+            } else {
+                this.showNotification(result.message || 'Failed to claim free funds', 'error');
+            }
+        } catch (error) {
+            this.showNotification('Network error while claiming free funds', 'error');
+        }
     }
 
     async refreshCaptcha() {
@@ -437,6 +554,14 @@ class MasterCreditsApp {
 }
 
 const app = new MasterCreditsApp();
+
+// Expose app instance for platform integration
+window.app = app;
+
+// Add method for platform integration
+window.app.checkAuthState = function() {
+    return app.checkAuthState();
+};
 
 window.showSection = app.showSection.bind(app);
 window.showAuthTab = app.showAuthTab.bind(app);

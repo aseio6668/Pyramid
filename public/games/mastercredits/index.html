@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterCredits Casino - Fun Play Money Games</title>
+    <link rel="stylesheet" href="/css/platform.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- Pyramid Panel -->
+    <div class="pyramid-panel">
+        <div class="container">
+            <div class="panel-content">
+                <div class="pyramid-logo-section">
+                    <span class="pyramid-icon">🔺</span>
+                    <span class="panel-title">Pyramid Panel</span>
+                </div>
+                <nav class="panel-nav">
+                    <a href="/" class="nav-link">Games</a>
+                    <a href="/" class="nav-link">About</a>
+                    <a href="/" class="nav-link">Services</a>
+                    <a href="/" class="nav-link">Contact</a>
+                </nav>
+                <div class="profile-section">
+                    <div id="userProfile" class="user-profile" style="display: none;">
+                        <div class="profile-avatar">
+                            <img id="profileAvatarIcon" src="" alt="Avatar">
+                        </div>
+                        <span id="profileUsername">Player</span>
+                        <div class="profile-menu">
+                            <button class="profile-btn" onclick="window.PlatformAPI.showProfile()">Profile</button>
+                            <button class="logout-btn" onclick="window.PlatformAPI.logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div id="authSection" class="auth-section">
+                        <button class="login-btn" onclick="window.PlatformAPI.showLogin()">Login</button>
+                        <button class="register-btn" onclick="window.PlatformAPI.showRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <header class="header">
+            <div class="container">
+                <div class="logo-section">
+                    <img src="/images/logo.svg" alt="MasterCredits" class="logo">
+                    <h1>MasterCredits Casino</h1>
+                </div>
+                <nav class="nav-menu">
+                    <a href="#home" onclick="showSection('home')">Home</a>
+                    <a href="#games" onclick="showSection('games')">Games</a>
+                    <a href="#profile" onclick="showSection('profile')">Profile</a>
+                    <a href="#talents" onclick="showSection('talents')">Talents</a>
+                    <a href="#chat" onclick="toggleChat()">Chat</a>
+                </nav>
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="user-avatar">
+                        <img id="userAvatar" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTkiIGZpbGw9IiM0MTY5RTEiIHN0cm9rZT0iI0ZGRDcwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTYiIHI9IjIiIGZpbGw9IiNGRkQ3MDAiLz4KPGNpcmNsZSBjeD0iMjUiIGN5PSIxNiIgcj0iMiIgZmlsbD0iI0ZGRDcwMCIvPgo8cGF0aCBkPSJNIDEzIDI2IFEgMjAgMzAgMjcgMjYiIHN0cm9rZT0iI0ZGRDcwMCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=" alt="Avatar">
+                    </div>
+                    <div class="user-stats">
+                        <span id="username">Player</span>
+                        <span id="userLevel">Level 1</span>
+                        <span id="headerMcBalance">MC: 100,000.0000</span>
+                    </div>
+                    <button class="handout-btn" onclick="requestHandout()">Free MC</button>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section id="home-section" class="content-section">
+                <div class="container">
+                    <div class="section-currency-bar">
+                        <div class="currency-display">
+                            <span class="currency-label">Your Balance:</span>
+                            <span class="currency-amount" id="homeMcBalance">MC: --</span>
+                        </div>
+                    </div>
+                    <div class="hero-banner">
+                        <h2>Welcome to MasterCredits Casino!</h2>
+                        <p>Play with fake money, have real fun! No real money transactions - just pure entertainment.</p>
+                        <div class="feature-grid">
+                            <div class="feature-card">
+                                <h3>🎰 Casino Games</h3>
+                                <p>Enjoy classic casino games with a modern twist</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>🎖️ Level Up System</h3>
+                                <p>Gain experience and unlock new features</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>💬 Global Chat</h3>
+                                <p>Connect with other players worldwide</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>🎭 Custom Avatars</h3>
+                                <p>Personalize your profile with unique avatars</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="games-section" class="content-section active">
+                <div class="container">
+                    <div class="section-currency-bar">
+                        <div class="currency-display">
+                            <span class="currency-label">Your Balance:</span>
+                            <span class="currency-amount" id="gamesMcBalance">MC: --</span>
+                        </div>
+                    </div>
+                    <h2>Casino Games</h2>
+                    <div class="games-grid">
+                        <div class="game-card" onclick="playGame('blackjack')">
+                            <div class="game-banner coffee-theme">
+                                <h3>☕ Coffee Blackjack</h3>
+                                <p>Classic 21 with a caffeinated twist</p>
+                                <div class="game-stats">Min: 1,000 MC | Max: 100,000 MC</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="playGame('coinflip')">
+                            <div class="game-banner western-theme">
+                                <h3>🤠 Western Coinflip</h3>
+                                <p>Old west coin tossing adventure</p>
+                                <div class="game-stats">Min: 500 MC | Max: 50,000 MC</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="playGame('starbound')">
+                            <div class="game-banner space-theme">
+                                <h3>🚀 Starbound Slots</h3>
+                                <p>Space dogs exploring the galaxy</p>
+                                <div class="game-stats">Min: 2,000 MC | Max: 200,000 MC</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="playGame('mastersdice')">
+                            <div class="game-banner dice-theme">
+                                <h3>🎲 Master's Dice</h3>
+                                <p>Roll the dice and predict the future</p>
+                                <div class="game-stats">Min: 1,000 MC | Max: 75,000 MC</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="playGame('blacksmith')">
+                            <div class="game-banner forge-theme">
+                                <h3>🔨 Blacksmith Forge</h3>
+                                <p>Forge items with the master craftsman</p>
+                                <div class="game-stats">Min: 2,500 MC | Max: 150,000 MC</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="window.location.href='/games/par4'">
+                            <div class="game-banner golf-theme">
+                                <h3>⛳ Par4 Golf Betting</h3>
+                                <p>Bet on professional golfers in realistic rounds</p>
+                                <div class="game-stats">Min: 500 MC | Dynamic Payouts</div>
+                            </div>
+                        </div>
+                        <div class="game-card" onclick="window.location.href='/games/pinataparty'">
+                            <div class="game-banner party-theme">
+                                <h3>🪅 Pinata Party</h3>
+                                <p>Break pinatas and discover surprise treasures!</p>
+                                <div class="game-stats">Min: 500 MC | Random Prizes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile-section" class="content-section">
+                <div class="container">
+                    <div class="section-currency-bar">
+                        <div class="currency-display">
+                            <span class="currency-label">Your Balance:</span>
+                            <span class="currency-amount" id="profileMcBalance">MC: --</span>
+                        </div>
+                    </div>
+                    <div class="profile-card">
+                        <h2>MasterCredits Casino Profile</h2>
+                        <div class="profile-info">
+                            <div class="avatar-section">
+                                <img id="profileAvatar" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNzUiIGN5PSI3NSIgcj0iNzAiIGZpbGw9IiM0MTY5RTEiIHN0cm9rZT0iI0ZGRDcwMCIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjgiIGZpbGw9IiNGRkQ3MDAiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI2MCIgcj0iOCIgZmlsbD0iI0ZGRDcwMCIvPgo8cGF0aCBkPSJNIDU1IDk1IFEgNzUgMTE1IDk1IDk1IiBzdHJva2U9IiNGRkQ3MDAiIHN0cm9rZS13aWR0aD0iMyIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K" alt="Profile Avatar">
+                                <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                                <button onclick="document.getElementById('avatarUpload').click()">Change Avatar</button>
+                                <button onclick="showAvatarGallery()">Choose from Gallery</button>
+                            </div>
+                            <div class="stats-section">
+                                <div class="stat-item">
+                                    <label>Username:</label>
+                                    <span id="profileUsername">Player</span>
+                                </div>
+                                <div class="stat-item">
+                                    <label>Casino Level:</label>
+                                    <span id="profileLevel">1</span>
+                                </div>
+                                <div class="stat-item">
+                                    <label>Experience:</label>
+                                    <div class="exp-bar">
+                                        <div id="expProgress" class="exp-fill"></div>
+                                        <span id="expText">0 / 1000</span>
+                                    </div>
+                                </div>
+                                <div class="stat-item">
+                                    <label>MC Balance:</label>
+                                    <span id="profileBalance">MC: 100,000.0000</span>
+                                </div>
+                                <div class="stat-item" id="freeFundsContainer" style="display: none;">
+                                    <button id="freeFundsBtn" class="free-funds-btn" onclick="app.claimFreeFunds()">
+                                        🎁 Claim 10,000 Free MC
+                                    </button>
+                                </div>
+                                <div class="stat-item">
+                                    <label>Skill Points:</label>
+                                    <span id="skillPoints">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="unlocks-section">
+                            <h3>Unlocked Content</h3>
+                            <div class="unlocks-grid">
+                                <div class="unlock-category">
+                                    <h4>Avatar Borders</h4>
+                                    <div id="unlockedBorders" class="unlock-items"></div>
+                                </div>
+                                <div class="unlock-category">
+                                    <h4>Emojis</h4>
+                                    <div id="unlockedEmojis" class="unlock-items"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="talents-section" class="content-section">
+                <div class="container">
+                    <div class="section-currency-bar">
+                        <div class="currency-display">
+                            <span class="currency-label">Your Balance:</span>
+                            <span class="currency-amount" id="talentsMcBalance">MC: --</span>
+                        </div>
+                    </div>
+                    <div class="talent-tree-container">
+                        <div class="talent-header">
+                            <h2>🌟 Talent Tree</h2>
+                            <div class="talent-points">
+                                <span>Available Points: <span id="availablePoints">0</span></span>
+                                <button class="reset-talents-btn" id="resetTalentsBtn">Reset All Talents</button>
+                            </div>
+                        </div>
+                        
+                        <div class="talent-tree">
+                            <!-- Tier 1 -->
+                            <div class="talent-tier" data-tier="1">
+                                <div class="tier-label">Tier 1 - Foundation</div>
+                                <div class="talents-row">
+                                    <div class="talent-node" data-talent="pet-emojis">
+                                        <div class="talent-icon">🐕</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Pet Emojis</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock adorable pet emojis for chat</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node" data-talent="lore-mastery">
+                                        <div class="talent-icon">📝</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Lore Mastery</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock font styling options for chat</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node" data-talent="lucky-charm">
+                                        <div class="talent-icon">🍀</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Lucky Charm</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Slight boost to experience gain</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tier 2 -->
+                            <div class="talent-tier" data-tier="2">
+                                <div class="tier-label">Tier 2 - Mastery <span class="tier-requirement">(Requires 5 points in Tier 1)</span></div>
+                                <div class="talents-row">
+                                    <div class="talent-node locked" data-talent="font-styles">
+                                        <div class="talent-icon">📝</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Font Styles</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock underline, bold, and italic formatting</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="stardom">
+                                        <div class="talent-icon">⭐</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Stardom</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Create animated star effects in chat</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="profile-mastery">
+                                        <div class="talent-icon">👤</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Profile Mastery</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Expand profile description (+100 chars per rank)</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="lucky">
+                                        <div class="talent-icon">🎰</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Lucky</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">1%-5% chance for 1.25x gambling wins</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="spooky">
+                                        <div class="talent-icon">👻</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Spooky</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock monster and skeleton emojis</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="charming">
+                                        <div class="talent-icon">😊</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Charming</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Unlock friendly and amiable emojis</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tier 3 -->
+                            <div class="talent-tier" data-tier="3">
+                                <div class="tier-label">Tier 3 - Expertise <span class="tier-requirement">(Requires 5 points in Tier 2)</span></div>
+                                <div class="talents-row">
+                                    <div class="talent-node locked" data-talent="blessing-of-fortune">
+                                        <div class="talent-icon">🌟</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Blessing of Fortune</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">Enhanced Lucky bonus: 1.30x-1.50x multiplier (Requires Lucky 5/5)</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="talent-node locked" data-talent="evasion">
+                                        <div class="talent-icon">🛡️</div>
+                                        <div class="talent-info">
+                                            <div class="talent-name">Evasion</div>
+                                            <div class="talent-points">0/5</div>
+                                            <div class="talent-description">0.5%-2.5% chance to recover bet on loss</div>
+                                        </div>
+                                        <div class="rank-indicators">
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                            <span class="rank-dot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="talent-effects">
+                            <h3>Current Effects</h3>
+                            <div id="talentEffects" class="effects-list">
+                                <div class="effect-item">No talents learned yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <div id="chat-container" class="chat-container hidden">
+            <div class="chat-header">
+                <h3>Global Chat</h3>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input">
+                <div class="chat-formatting">
+                    <button id="boldBtn" class="format-btn" data-format="bold" title="Bold (unlock Font Styles talent)">B</button>
+                    <button id="italicBtn" class="format-btn" data-format="italic" title="Italic (unlock Font Styles talent)">I</button>
+                    <button id="underlineBtn" class="format-btn" data-format="underline" title="Underline (unlock Font Styles talent)">U</button>
+                    <button id="starBtn" class="format-btn" data-format="star" title="Star Animation (unlock Stardom talent)">⭐</button>
+                    <button id="emojiBtn" class="format-btn" data-format="emoji" title="Special Emojis (unlock talent)">😊</button>
+                    <button id="settingsBtn" class="format-btn locked" title="Unlock talents for more chat features">?</button>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="gameTitle">Game</h3>
+                    <button class="modal-close" onclick="closeGame()">×</button>
+                </div>
+                <div id="gameContent" class="game-content"></div>
+            </div>
+        </div>
+
+        <div id="avatar-gallery-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Choose Avatar</h3>
+                    <button class="modal-close" onclick="closeAvatarGallery()">×</button>
+                </div>
+                <div id="avatarGallery" class="avatar-gallery"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-header">
+                <h3 id="authTitle">Login</h3>
+                <button class="modal-close" onclick="closeAuthModal()">×</button>
+            </div>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                    <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Login to Platform</button>
+                </form>
+                
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="registerUsername">Username (1-12 characters, letters/numbers only)</label>
+                        <input type="text" id="registerUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password (4-30 characters)</label>
+                        <input type="password" id="registerPassword" required minlength="4" maxlength="30">
+                    </div>
+                    <div class="form-group">
+                        <label for="backupEmail">Backup Email (Optional)</label>
+                        <input type="email" id="backupEmail" placeholder="For account recovery">
+                    </div>
+                    <div class="form-group captcha-group">
+                        <label for="captchaInput">Enter the captcha</label>
+                        <div class="captcha-container">
+                            <img id="captchaImage" src="" alt="Captcha">
+                            <button type="button" onclick="refreshCaptcha()" class="refresh-captcha">↻</button>
+                        </div>
+                        <input type="text" id="captchaInput" required maxlength="5">
+                    </div>
+                    <button type="submit" class="auth-btn">Create Platform Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Platform Profile</h3>
+                <button class="modal-close" onclick="closeProfile()">×</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-overview">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h4 id="profileUsername">Player</h4>
+                        <p id="profileLevel">Platform Level 1</p>
+                        <p id="profileJoined">Joined: --</p>
+                    </div>
+                </div>
+                
+                <div class="games-progress">
+                    <h4>Games Progress</h4>
+                    <div class="game-progress-list">
+                        <div class="game-progress-item" id="masterCreditsProgress">
+                            <div class="game-icon">🎰</div>
+                            <div class="progress-info">
+                                <span class="game-name">MasterCredits Casino</span>
+                                <div class="progress-stats">
+                                    <span id="mcLevel">Level --</span>
+                                    <span id="gameMcBalance">Balance: -- MC</span>
+                                    <span id="mcSkillPoints">Skill Points: --</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-progress-item" id="pyramidRunnerProgress">
+                            <div class="game-icon">🏃</div>
+                            <div class="progress-info">
+                                <span class="game-name">Pyramid Runner</span>
+                                <div class="progress-stats">
+                                    <span id="prHighScore">High Score: --</span>
+                                    <span id="prLevelsCompleted">Levels: --</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/platform.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/games.js"></script>
+    <script src="/js/talents.js"></script>
+</body>
+</html>

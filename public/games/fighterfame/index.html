@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FighterFame - 3D Fighting Tournament</title>
+    <link rel="stylesheet" href="/css/platform.css">
+    <link rel="icon" href="/images/pyramid-logo.svg" type="image/svg+xml">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            background: #000;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .health-bars {
+            position: absolute;
+            top: 20px;
+            left: 50px;
+            right: 50px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 200;
+        }
+
+        .health-container {
+            width: 300px;
+            text-align: center;
+        }
+
+        .fighter-name {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00);
+            transition: width 0.3s ease;
+        }
+
+        .round-timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px solid #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .main-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            min-width: 500px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.7);
+        }
+
+        .main-menu h1 {
+            color: #ffd700;
+            font-size: 48px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #ffd700;
+            background: linear-gradient(45deg, #ffd700, #ff6b00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            border: none;
+            color: #000;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.98);
+        }
+
+        .character-select {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 30px;
+            width: 80%;
+            max-width: 1000px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .character-select h2 {
+            color: #ffd700;
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px #ffd700;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .character-card {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .character-card:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+            transform: scale(1.02);
+        }
+
+        .character-card.selected {
+            background: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            border-color: #fff;
+        }
+
+        .character-avatar {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .character-name {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .character-style {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .character-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+        }
+
+        .start-fight-btn {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .start-fight-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px #ff4444;
+        }
+
+        .start-fight-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .controls-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 12px;
+            color: #ffd700;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .fight-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 4px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            min-width: 400px;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.8);
+        }
+
+        .fight-result h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .victory {
+            color: #00ff00;
+        }
+
+        .defeat {
+            color: #ff4444;
+        }
+
+        .continue-btn {
+            background: linear-gradient(45deg, #00aa00, #006600);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #00aa00;
+        }
+
+        .stage-selector {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 30px;
+            width: 80%;
+            max-width: 900px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stage-card {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .stage-card:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .stage-card.selected {
+            background: rgba(255, 215, 0, 0.3);
+            border-color: #fff;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+        }
+
+        .stage-preview {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #333, #666);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .move-list {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 250px;
+            font-size: 11px;
+            color: #ffd700;
+        }
+
+        .special-moves {
+            margin-top: 10px;
+            border-top: 1px solid #ffd700;
+            padding-top: 10px;
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .loading-text {
+            color: #ffd700;
+            font-size: 36px;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-bar {
+            width: 400px;
+            height: 10px;
+            background: #333;
+            border: 2px solid #ffd700;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pyramid Panel -->
+    <div class="pyramid-panel">
+        <div class="container">
+            <div class="panel-content">
+                <div class="pyramid-logo-section">
+                    <span class="pyramid-icon">🔺</span>
+                    <span class="panel-title">Pyramid Panel</span>
+                </div>
+                <nav class="panel-nav">
+                    <a href="/" class="nav-link">Games</a>
+                    <a href="/" class="nav-link">About</a>
+                    <a href="/" class="nav-link">Services</a>
+                    <a href="/" class="nav-link">Contact</a>
+                </nav>
+                <div class="profile-section">
+                    <div id="userProfile" class="user-profile" style="display: none;">
+                        <div class="profile-avatar">
+                            <img id="profileAvatarIcon" src="" alt="Avatar">
+                        </div>
+                        <span id="profileUsername">Player</span>
+                        <div class="profile-menu">
+                            <button class="profile-btn" onclick="window.PlatformAPI.showProfile()">Profile</button>
+                            <button class="logout-btn" onclick="window.PlatformAPI.logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div id="authSection" class="auth-section">
+                        <button class="login-btn" onclick="window.PlatformAPI.showLogin()">Login</button>
+                        <button class="register-btn" onclick="window.PlatformAPI.showRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1024" height="576"></canvas>
+        
+        <!-- Game UI -->
+        <div class="game-ui">
+            <!-- Health Bars -->
+            <div class="health-bars">
+                <div class="health-container">
+                    <div class="fighter-name" id="player1Name">Player 1</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="player1Health" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="health-container">
+                    <div class="fighter-name" id="player2Name">CPU</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="player2Health" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round Timer -->
+            <div class="round-timer" id="roundTimer">99</div>
+
+            <!-- Controls Display -->
+            <div class="controls-display" id="controlsDisplay">
+                <div class="controls-grid">
+                    <div><strong>Movement:</strong></div>
+                    <div>A/D, ↑↓</div>
+                    <div><strong>Light Punch:</strong></div>
+                    <div>J</div>
+                    <div><strong>Heavy Punch:</strong></div>
+                    <div>K</div>
+                    <div><strong>Light Kick:</strong></div>
+                    <div>I</div>
+                    <div><strong>Heavy Kick:</strong></div>
+                    <div>O</div>
+                    <div><strong>Block:</strong></div>
+                    <div>S (hold)</div>
+                </div>
+            </div>
+
+            <!-- Move List -->
+            <div class="move-list" id="moveList">
+                <h4>Special Moves</h4>
+                <div class="special-moves">
+                    <div>Hadoken: ↓↘→ + Punch</div>
+                    <div>Shoryuken: →↓↘ + Punch</div>
+                    <div>Hurricane: ↓↙← + Kick</div>
+                    <div>Sonic Boom: ←→ + Punch</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-text">FighterFame</div>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="mainMenu" class="main-menu hidden">
+            <h1>FighterFame</h1>
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="showGameMode('vs')">VS Mode</button>
+                <button class="menu-btn" onclick="showGameMode('arcade')">Arcade Mode</button>
+                <button class="menu-btn" onclick="showControls()">Controls</button>
+                <button class="menu-btn" onclick="showCredits()">Credits</button>
+            </div>
+        </div>
+
+        <!-- Character Selection -->
+        <div id="characterSelect" class="character-select hidden">
+            <h2>Choose Your Fighter</h2>
+            <div class="character-grid" id="characterGrid">
+                <!-- Characters will be populated by JavaScript -->
+            </div>
+            <button class="start-fight-btn" id="startFightBtn" disabled onclick="selectStage()">Select Stage</button>
+        </div>
+
+        <!-- Stage Selection -->
+        <div id="stageSelect" class="stage-selector hidden">
+            <h2>Choose Your Arena</h2>
+            <div class="stage-grid" id="stageGrid">
+                <!-- Stages will be populated by JavaScript -->
+            </div>
+            <button class="start-fight-btn" id="startStageBtn" disabled onclick="startFight()">Begin Fight</button>
+        </div>
+
+        <!-- Fight Result -->
+        <div id="fightResult" class="fight-result hidden">
+            <h2 id="resultText" class="victory">Victory!</h2>
+            <p id="resultDetails">You defeated your opponent!</p>
+            <button class="continue-btn" onclick="continueGame()">Continue</button>
+            <button class="continue-btn" onclick="returnToMenu()">Main Menu</button>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-header">
+                <h3 id="authTitle">Login</h3>
+                <button class="modal-close" onclick="closeAuthModal()">×</button>
+            </div>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                    <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Login to Platform</button>
+                </form>
+                
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="registerUsername">Username (1-12 characters, letters/numbers only)</label>
+                        <input type="text" id="registerUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password (4-30 characters)</label>
+                        <input type="password" id="registerPassword" required minlength="4" maxlength="30">
+                    </div>
+                    <div class="form-group">
+                        <label for="backupEmail">Backup Email (Optional)</label>
+                        <input type="email" id="backupEmail" placeholder="For account recovery">
+                    </div>
+                    <div class="form-group captcha-group">
+                        <label for="captchaInput">Enter the captcha</label>
+                        <div class="captcha-container">
+                            <img id="captchaImage" src="" alt="Captcha">
+                            <button type="button" onclick="refreshCaptcha()" class="refresh-captcha">↻</button>
+                        </div>
+                        <input type="text" id="captchaInput" required maxlength="5">
+                    </div>
+                    <button type="submit" class="auth-btn">Create Platform Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Platform Profile</h3>
+                <button class="modal-close" onclick="closeProfile()">×</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-overview">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h4 id="profileUsername">Player</h4>
+                        <p id="profileLevel">Platform Level 1</p>
+                        <p id="profileJoined">Joined: --</p>
+                    </div>
+                </div>
+                
+                <div class="games-progress">
+                    <h4>Games Progress</h4>
+                    <div class="game-progress-list">
+                        <div class="game-progress-item">
+                            <h5>FighterFame</h5>
+                            <p>Wins: <span id="fighterWins">--</span></p>
+                            <p>Tournament Wins: <span id="fighterTournaments">--</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/platform.js"></script>
+    <script>
+        // Global game variables
+        let game = null;
+        let gameMode = null;
+        let selectedFighters = { player1: null, player2: null };
+        let selectedStage = null;
+
+        // Platform integration functions
+        function closeAuthModal() {
+            if (window.PlatformAPI) {
+                const modal = document.getElementById('auth-modal');
+                modal.classList.add('hidden');
+            }
+        }
+
+        function switchAuthTab(tab) {
+            // Implementation handled by platform.js
+        }
+
+        function refreshCaptcha() {
+            // Implementation handled by platform.js  
+        }
+
+        function closeProfile() {
+            const modal = document.getElementById('profile-modal');
+            modal.classList.add('hidden');
+        }
+
+        // Game menu functions
+        function showGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('characterSelect').classList.remove('hidden');
+            
+            // Populate characters
+            populateCharacters();
+        }
+
+        function showControls() {
+            alert('Controls:\nMovement: A/D keys or Arrow keys\nJump: W or Up Arrow\nCrouch: S or Down Arrow\n\nAttacks:\nLight Punch: J\nHeavy Punch: K\nLight Kick: I\nHeavy Kick: O\nBlock: Hold S\n\nSpecial Moves:\nCombine directions with attacks for special moves!');
+        }
+
+        function showCredits() {
+            alert('FighterFame\n\nDeveloped for AseioTech Pyramid Gaming Platform\n\nA high-end 3D fighting game experience\nwith advanced combat mechanics and multiple fighters.');
+        }
+
+        function returnToMenu() {
+            // Reset game state
+            selectedFighters = { player1: null, player2: null };
+            selectedStage = null;
+            
+            // Show main menu, hide all other screens
+            document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('characterSelect').classList.add('hidden');
+            document.getElementById('stageSelect').classList.add('hidden');
+            document.getElementById('fightResult').classList.add('hidden');
+        }
+
+        // Initialize the game
+        function initializeGame() {
+            // Add debug text to loading screen
+            const loadingText = document.querySelector('.loading-text');
+            loadingText.innerHTML = 'Starting game initialization...';
+            
+            // Simulate loading
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                document.getElementById('loadingProgress').style.width = Math.min(100, progress) + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    loadingText.innerHTML = 'Loading complete, creating game instance...';
+                    
+                    try {
+                        // Check if FighterFameGame class exists
+                        if (typeof FighterFameGame === 'undefined') {
+                            throw new Error('FighterFameGame class not loaded');
+                        }
+                        
+                        // Check if canvas exists
+                        const canvas = document.getElementById('gameCanvas');
+                        if (!canvas) {
+                            throw new Error('Game canvas not found in DOM');
+                        }
+                        
+                        loadingText.innerHTML = 'Creating game instance...';
+                        
+                        // Create game instance
+                        window.game = new FighterFameGame();
+                        
+                        loadingText.innerHTML = 'Game created! Switching to menu...';
+                        
+                        // Force display changes directly
+                        const loadingScreen = document.getElementById('loadingScreen');
+                        const mainMenu = document.getElementById('mainMenu');
+                        
+                        if (loadingScreen && mainMenu) {
+                            loadingScreen.style.display = 'none';
+                            mainMenu.style.display = 'flex';
+                        } else {
+                            loadingText.innerHTML = 'ERROR: Menu elements not found';
+                        }
+                        
+                    } catch (error) {
+                        loadingText.innerHTML = 'ERROR: ' + error.message;
+                        loadingText.style.color = 'red';
+                        // Keep loading screen visible to show error
+                    }
+                }
+            }, 100);
+        }
+
+        // Load game engine
+        function loadGameEngine() {
+            const script = document.createElement('script');
+            script.src = '/games/fighterfame/fighterfame-engine.js';
+            script.onload = () => {
+                console.log('FighterFame engine loaded');
+                initializeGame();
+            };
+            document.head.appendChild(script);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            loadGameEngine();
+            
+            // Initialize platform if available
+            if (window.PlatformAPI) {
+                window.PlatformAPI.checkAuthStatus();
+            }
+        });
+    </script>
+</body>
+</html>

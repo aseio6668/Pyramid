@@ -73,32 +73,35 @@ async function checkAuthStatus() {
 
 function updateUIForLoggedInUser(userData) {
     // Hide auth buttons
-    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('authSection').style.display = 'none';
     
     // Show user info
-    const userInfo = document.getElementById('userInfo');
+    const userInfo = document.getElementById('userProfile');
     userInfo.style.display = 'flex';
     
     // Update user display
-    document.getElementById('username').textContent = userData.username;
-    document.getElementById('userLevel').textContent = `Level ${userData.level || 1}`;
+    document.getElementById('profileUsername').textContent = userData.username;
     
-    // Set avatar
-    const avatarImg = document.getElementById('userAvatar');
-    if (userData.avatar) {
-        avatarImg.src = userData.avatar;
-        avatarImg.style.display = 'block';
-    } else {
-        avatarImg.style.display = 'none';
-    }
+    // Set avatar - use pyramid theme default
+    const avatarImg = document.getElementById('profileAvatarIcon');
+    const defaultAvatar = "data:image/svg+xml;base64," + btoa(`
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="15" cy="15" r="15" fill="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f4c75 100%)"/>
+            <polygon points="15,8 21,21 9,21" fill="#ffd700" stroke="#ffaa00" stroke-width="1"/>
+        </svg>
+    `);
+    
+    avatarImg.src = defaultAvatar;
+    avatarImg.alt = "Pyramid User";
+    avatarImg.style.display = 'block';
 }
 
 function updateUIForLoggedOutUser() {
     // Show auth buttons
-    document.getElementById('authButtons').style.display = 'flex';
+    document.getElementById('authSection').style.display = 'flex';
     
     // Hide user info
-    document.getElementById('userInfo').style.display = 'none';
+    document.getElementById('userProfile').style.display = 'none';
     
     currentUser = null;
 }
@@ -168,6 +171,11 @@ async function handleLogin(e) {
             updateUIForLoggedInUser(data);
             closeAuthModal();
             showNotification('Welcome to AseioTech Pyramid!', 'success');
+            
+            // Notify MasterCredits app if it exists
+            if (window.app && window.app.checkAuthState) {
+                window.app.checkAuthState();
+            }
         } else {
             showNotification(data.error || 'Login failed', 'error');
         }
@@ -207,6 +215,11 @@ async function handleRegister(e) {
             updateUIForLoggedInUser(data);
             closeAuthModal();
             showNotification('Account created! Welcome to AseioTech Pyramid!', 'success');
+            
+            // Notify MasterCredits app if it exists
+            if (window.app && window.app.checkAuthState) {
+                window.app.checkAuthState();
+            }
         } else {
             showNotification(data.error || 'Registration failed', 'error');
             if (data.error && data.error.includes('captcha')) {
@@ -230,10 +243,20 @@ async function logout() {
         if (response.ok) {
             updateUIForLoggedOutUser();
             showNotification('Logged out successfully', 'success');
+            
+            // Notify MasterCredits app if it exists
+            if (window.app && window.app.checkAuthState) {
+                window.app.checkAuthState();
+            }
         }
     } catch (error) {
         console.error('Logout error:', error);
         updateUIForLoggedOutUser();
+        
+        // Notify MasterCredits app if it exists
+        if (window.app && window.app.checkAuthState) {
+            window.app.checkAuthState();
+        }
     }
 }
 
@@ -273,13 +296,19 @@ function updateProfileDisplay(userData) {
     document.getElementById('profileLevel').textContent = `Platform Level ${userData.level || 1}`;
     document.getElementById('profileJoined').textContent = `Joined: ${new Date(userData.createdAt).toLocaleDateString()}`;
     
-    // Set avatar
+    // Set avatar with error handling - use pyramid theme
     const profileAvatar = document.getElementById('profileAvatar');
-    if (userData.avatar) {
-        profileAvatar.src = userData.avatar;
-    } else {
-        profileAvatar.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyMCIgZmlsbD0iIzMzNzNkYyIvPjx0ZXh0IHg9IjIwIiB5PSIyNiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+8J+RpDwvdGV4dD48L3N2Zz4=";
-    }
+    const defaultAvatar = "data:image/svg+xml;base64," + btoa(`
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="20" fill="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f4c75 100%)"/>
+            <polygon points="20,10 28,28 12,28" fill="#ffd700" stroke="#ffaa00" stroke-width="1"/>
+            <text x="20" y="35" font-family="Arial" font-size="8" fill="#ffd700" text-anchor="middle">🔺</text>
+        </svg>
+    `);
+    
+    // Always use default avatar for Pyramid platform since no avatar system exists
+    profileAvatar.src = defaultAvatar;
+    profileAvatar.alt = "Pyramid User";
     
     // Update game-specific progress
     updateGameProgress(userData);
@@ -290,7 +319,10 @@ function updateGameProgress(userData) {
     if (userData.masterCreditsData) {
         const mcData = userData.masterCreditsData;
         document.getElementById('mcLevel').textContent = `Level ${mcData.level || 1}`;
-        document.getElementById('mcBalance').textContent = `Balance: ${mcData.balance || 0} MC`;
+        
+        // Format balance nicely
+        const balance = parseFloat(mcData.balance || 0).toFixed(4);
+        document.getElementById('mcBalance').textContent = `Balance: ${balance} MC`;
         document.getElementById('mcSkillPoints').textContent = `Skill Points: ${mcData.skillPoints || 0}`;
     } else {
         document.getElementById('mcLevel').textContent = 'Level --';
@@ -308,7 +340,7 @@ async function refreshCaptcha() {
     try {
         const response = await fetch('/api/captcha');
         const data = await response.json();
-        document.getElementById('captchaImage').src = data.captcha;
+        document.getElementById('captchaImage').src = data.image;
     } catch (error) {
         console.error('Captcha refresh failed:', error);
     }
@@ -351,6 +383,8 @@ window.PlatformAPI = {
     getCurrentUser: () => currentUser,
     checkAuthStatus,
     showLogin,
+    showRegister,
     showProfile,
+    logout,
     showNotification
 };

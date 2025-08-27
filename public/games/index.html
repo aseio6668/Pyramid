@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games - AseioTech Pyramid</title>
+    <link rel="stylesheet" href="/css/platform.css">
+    <link rel="icon" href="/images/pyramid-logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- Pyramid Panel -->
+    <div class="pyramid-panel">
+        <div class="container">
+            <div class="panel-content">
+                <div class="pyramid-logo-section">
+                    <span class="pyramid-icon">🔺</span>
+                    <span class="panel-title">Pyramid Panel</span>
+                </div>
+                <nav class="panel-nav">
+                    <a href="/" class="nav-link active">Games</a>
+                    <a href="/" class="nav-link">About</a>
+                    <a href="/" class="nav-link">Services</a>
+                    <a href="/" class="nav-link">Contact</a>
+                </nav>
+                <div class="profile-section">
+                    <div id="userProfile" class="user-profile" style="display: none;">
+                        <div class="profile-avatar">
+                            <img id="profileAvatarIcon" src="" alt="Avatar">
+                        </div>
+                        <span id="profileUsername">Player</span>
+                        <div class="profile-menu">
+                            <button class="profile-btn" onclick="showProfile()">Profile</button>
+                            <button class="logout-btn" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div id="authSection" class="auth-section">
+                        <button class="login-btn" onclick="showLogin()">Login</button>
+                        <button class="register-btn" onclick="showRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="platform">
+        <header class="platform-header">
+            <div class="container">
+                <div class="logo-section">
+                    <div class="pyramid-logo">🔺</div>
+                    <h1>AseioTech Pyramid</h1>
+                    <span class="platform-subtitle">Game Library</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="platform-main">
+            <section class="games-library">
+                <div class="container">
+                    <div class="library-header">
+                        <h2>All Games</h2>
+                        <p class="library-subtitle">Choose your adventure - all games are free with no ads!</p>
+                    </div>
+                    
+                    <div class="games-banner-grid">
+                        <!-- Master Credits Casino -->
+                        <div class="game-banner casino-banner" onclick="window.location.href='/games/mastercredits'">
+                            <div class="banner-art">
+                                <div class="game-icon large">🎰</div>
+                                <div class="game-background casino-bg"></div>
+                            </div>
+                            <div class="banner-info">
+                                <h3 class="game-name">Master Credits</h3>
+                                <p class="game-tagline">Casino Multigame Experience</p>
+                                <div class="game-features-brief">
+                                    <span class="feature">🃏 5 Casino Games</span>
+                                    <span class="feature">🌟 Talent System</span>
+                                    <span class="feature">💬 Chat</span>
+                                </div>
+                                <div class="play-overlay">
+                                    <span class="play-text">Click to Play</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Platform Game -->
+                        <div class="game-banner platform-banner" onclick="window.location.href='/games/pyramidrunner'">
+                            <div class="banner-art">
+                                <div class="game-icon large">🏃</div>
+                                <div class="game-background platform-bg"></div>
+                            </div>
+                            <div class="banner-info">
+                                <h3 class="game-name">Platform Game</h3>
+                                <p class="game-tagline">Classic 2D Adventure</p>
+                                <div class="game-features-brief">
+                                    <span class="feature">🏃 Ancient Explorer</span>
+                                    <span class="feature">📈 High Scores</span>
+                                    <span class="feature">🏆 Levels</span>
+                                </div>
+                                <div class="play-overlay">
+                                    <span class="play-text">Click to Play</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GalexV Space Shooter -->
+                        <div class="game-card">
+                            <div class="game-thumbnail space-theme">
+                                <div class="game-icon">🚀</div>
+                                <div class="game-title">GalexV</div>
+                                <div class="play-overlay" onclick="window.location.href='/games/galaxv'">
+                                    <span class="play-text">Click to Play</span>
+                                </div>
+                            </div>
+                            <div class="game-details">
+                                <p>Epic top-down space shooter! Choose from 3 unique fighters and battle through 4 intense stages of nonstop alien combat.</p>
+                                <div class="game-features">
+                                    <span class="feature">🛸 3 Unique Ships</span>
+                                    <span class="feature">🔫 Power-ups & Weapons</span>
+                                    <span class="feature">🌌 4 Epic Stages</span>
+                                </div>
+                                <div class="game-meta">
+                                    <span class="genre">Shoot-em-up</span>
+                                    <span class="players">Single Player</span>
+                                    <span class="difficulty">Hard</span>
+                                </div>
+                                <button class="play-btn" onclick="window.location.href='/games/galaxv'">Launch Mission</button>
+                            </div>
+                        </div>
+
+                        <!-- FighterFame Fighting Game -->
+                        <div class="game-card">
+                            <div class="game-thumbnail fighting-theme">
+                                <div class="game-icon">⚔️</div>
+                                <div class="game-title">FighterFame</div>
+                                <div class="play-overlay" onclick="window.location.href='/games/fighterfame'">
+                                    <span class="play-text">Click to Play</span>
+                                </div>
+                            </div>
+                            <div class="game-details">
+                                <p>High-end 3D side-view fighting game with 6 unique fighters, special moves, and intense arcade combat across beautiful stages!</p>
+                                <div class="game-features">
+                                    <span class="feature">⚔️ 6 Unique Fighters</span>
+                                    <span class="feature">🥊 Special Moves & Combos</span>
+                                    <span class="feature">🏟️ 6 Epic Stages</span>
+                                </div>
+                                <div class="game-meta">
+                                    <span class="genre">Fighting</span>
+                                    <span class="players">1-2 Players</span>
+                                    <span class="difficulty">Hard</span>
+                                </div>
+                                <button class="play-btn" onclick="window.location.href='/games/fighterfame'">Enter the Arena</button>
+                            </div>
+                        </div>
+
+                        <!-- Coming Soon Games -->
+
+                        <div class="game-card coming-soon">
+                            <div class="game-thumbnail coming-soon-theme">
+                                <div class="game-icon">🏗️</div>
+                                <div class="game-title">City Builder</div>
+                            </div>
+                            <div class="game-details">
+                                <p>Build and manage your dream city. Construct buildings, manage resources, and keep citizens happy!</p>
+                                <div class="game-features">
+                                    <span class="feature">🏙️ City Planning</span>
+                                    <span class="feature">💰 Resource Management</span>
+                                    <span class="feature">👥 Population Growth</span>
+                                </div>
+                                <div class="game-meta">
+                                    <span class="genre">Strategy</span>
+                                    <span class="players">Single Player</span>
+                                    <span class="difficulty">Medium</span>
+                                </div>
+                                <button class="play-btn disabled">Coming Soon</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="library-footer">
+                        <div class="stats-section">
+                            <h3>Platform Stats</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number">4</span>
+                                    <span class="stat-label">Games Available</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">2</span>
+                                    <span class="stat-label">More Coming Soon</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">100%</span>
+                                    <span class="stat-label">Free to Play</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">0</span>
+                                    <span class="stat-label">Ads or Purchases</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="platform-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h4>AseioTech Pyramid</h4>
+                        <p>Free games for education and entertainment</p>
+                        <a href="/" class="footer-link">← Back to Main Platform</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Available Games</h4>
+                        <a href="/games/mastercredits">MasterCredits Casino</a>
+                        <a href="/games/pyramidrunner">Pyramid Runner</a>
+                        <a href="/games/galaxv">GalexV Space Shooter</a>
+                        <a href="/games/fighterfame">FighterFame</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Coming Soon</h4>
+                        <span>Racing Game</span>
+                        <span>City Builder</span>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 AseioTech Pyramid - All games are free and educational</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-header">
+                <h3 id="authTitle">Login</h3>
+                <button class="modal-close" onclick="closeAuthModal()">×</button>
+            </div>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                    <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Login to Platform</button>
+                </form>
+                
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="registerUsername">Username (1-12 characters, letters/numbers only)</label>
+                        <input type="text" id="registerUsername" required maxlength="12" 
+                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password (4-30 characters)</label>
+                        <input type="password" id="registerPassword" required minlength="4" maxlength="30">
+                    </div>
+                    <div class="form-group">
+                        <label for="backupEmail">Backup Email (Optional)</label>
+                        <input type="email" id="backupEmail" placeholder="For account recovery">
+                    </div>
+                    <div class="form-group captcha-group">
+                        <label for="captchaInput">Enter the captcha</label>
+                        <div class="captcha-container">
+                            <img id="captchaImage" src="" alt="Captcha">
+                            <button type="button" onclick="refreshCaptcha()" class="refresh-captcha">↻</button>
+                        </div>
+                        <input type="text" id="captchaInput" required maxlength="5">
+                    </div>
+                    <button type="submit" class="auth-btn">Create Platform Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Platform Profile</h3>
+                <button class="modal-close" onclick="closeProfile()">×</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-overview">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h4 id="profileUsername">Player</h4>
+                        <p id="profileLevel">Platform Level 1</p>
+                        <p id="profileJoined">Joined: --</p>
+                    </div>
+                </div>
+                
+                <div class="games-progress">
+                    <h4>Games Progress</h4>
+                    <div class="game-progress-list">
+                        <div class="game-progress-item" id="masterCreditsProgress">
+                            <div class="game-icon">🎰</div>
+                            <div class="progress-info">
+                                <span class="game-name">MasterCredits Casino</span>
+                                <div class="progress-stats">
+                                    <span id="mcLevel">Level --</span>
+                                    <span id="mcBalance">Balance: -- MC</span>
+                                    <span id="mcSkillPoints">Skill Points: --</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-progress-item" id="pyramidRunnerProgress">
+                            <div class="game-icon">🏃</div>
+                            <div class="progress-info">
+                                <span class="game-name">Pyramid Runner</span>
+                                <div class="progress-stats">
+                                    <span id="prHighScore">High Score: --</span>
+                                    <span id="prLevelsCompleted">Levels: --</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/platform.js"></script>
+</body>
+</html>

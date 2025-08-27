@@ -362,6 +362,11 @@ class GameManager {
             return;
         }
         
+        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
+            this.showGameMessage('Please login to play', 'error');
+            return;
+        }
+        
         if (betAmount > app.currentUser.mcBalance) {
             this.showGameMessage('Insufficient balance', 'error');
             return;
@@ -390,8 +395,10 @@ class GameManager {
                 document.getElementById('blackjackTable').style.display = 'block';
                 document.getElementById('dealCards').style.display = 'none';
                 if (app.currentUser) {
-                    app.currentUser.mcBalance = result.newBalance;
-                    app.updateUserDisplay();
+                    if (app.currentUser) {
+                        app.currentUser.mcBalance = result.newBalance;
+                        app.updateUserDisplay();
+                    }
                 }
             } else {
                 console.error('Blackjack error:', result.error);
@@ -576,8 +583,10 @@ class GameManager {
             <button onclick="gameManager.resetBlackjack()">☕ New Hand</button>
         `;
         
-        app.currentUser.mcBalance = result.newBalance;
-        app.updateUserDisplay();
+        if (app.currentUser) {
+            app.currentUser.mcBalance = result.newBalance;
+            app.updateUserDisplay();
+        }
     }
 
     async flipCoin(choice) {
@@ -585,6 +594,11 @@ class GameManager {
         
         if (betAmount < 500 || betAmount > 50000) {
             this.showGameMessage('Bet must be between 500 and 50,000 MC', 'error');
+            return;
+        }
+        
+        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
+            this.showGameMessage('Please login to play', 'error');
             return;
         }
         
@@ -617,8 +631,10 @@ class GameManager {
                 
                 if (result.success) {
                     this.showCoinflipResult(result);
-                    app.currentUser.mcBalance = result.newBalance;
-                    app.updateUserDisplay();
+                    if (app.currentUser) {
+                        app.currentUser.mcBalance = result.newBalance;
+                        app.updateUserDisplay();
+                    }
                 } else {
                     this.showGameMessage(result.error, 'error');
                 }
@@ -662,6 +678,11 @@ class GameManager {
             return;
         }
         
+        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
+            this.showGameMessage('Please login to play', 'error');
+            return;
+        }
+        
         if (totalBet > app.currentUser.mcBalance) {
             this.showGameMessage('Insufficient balance', 'error');
             return;
@@ -688,8 +709,10 @@ class GameManager {
                 
                 if (result.success) {
                     this.showStarboundResult(result);
-                    app.currentUser.mcBalance = result.newBalance;
-                    app.updateUserDisplay();
+                    if (app.currentUser) {
+                        app.currentUser.mcBalance = result.newBalance;
+                        app.updateUserDisplay();
+                    }
                 } else {
                     this.showGameMessage(result.error, 'error');
                 }
@@ -858,6 +881,11 @@ class GameManager {
             return;
         }
 
+        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
+            this.showGameMessage('Please login to play', 'error');
+            return;
+        }
+        
         if (app.currentUser.mcBalance < betAmount) {
             this.showGameMessage('Insufficient balance for this investment', 'error');
             return;
@@ -975,8 +1003,10 @@ class GameManager {
             const result = await response.json();
             
             if (response.ok) {
-                app.currentUser.mcBalance = result.newBalance;
-                app.updateUserDisplay();
+                if (app.currentUser) {
+                    app.currentUser.mcBalance = result.newBalance;
+                    app.updateUserDisplay();
+                }
                 
                 this.displayMerchantResult(result);
             } else {
