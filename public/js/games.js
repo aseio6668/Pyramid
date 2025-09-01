@@ -148,14 +148,26 @@ class GameManager {
                     
                     <div class="slot-machine">
                         <div class="paytable">
-                            <h4>🎯 Mission Rewards</h4>
+                            <h4>🎯 Mission Rewards (Improved!)</h4>
                             <div class="payout-grid">
-                                <div class="payout-row"><span>🐕🐕🐕</span> <span>50x</span></div>
-                                <div class="payout-row"><span>🚀🚀🚀</span> <span>25x</span></div>
-                                <div class="payout-row"><span>⭐⭐⭐</span> <span>15x</span></div>
-                                <div class="payout-row"><span>🌟🌟🌟</span> <span>10x</span></div>
-                                <div class="payout-row"><span>🛸🛸🛸</span> <span>8x</span></div>
-                                <div class="payout-row"><span>🐾🐾🐾</span> <span>5x</span></div>
+                                <div class="payout-section">
+                                    <h5>3+ Consecutive</h5>
+                                    <div class="payout-row"><span>🐕🐕🐕+</span> <span>25x</span></div>
+                                    <div class="payout-row"><span>🚀🚀🚀+</span> <span>15x</span></div>
+                                    <div class="payout-row"><span>⭐⭐⭐+</span> <span>10x</span></div>
+                                    <div class="payout-row"><span>🌟🌟🌟+</span> <span>8x</span></div>
+                                </div>
+                                <div class="payout-section">
+                                    <h5>Pairs (2 in row)</h5>
+                                    <div class="payout-row small"><span>🐕🐕</span> <span>2x</span></div>
+                                    <div class="payout-row small"><span>🚀🚀</span> <span>1.5x</span></div>
+                                    <div class="payout-row small"><span>⭐⭐</span> <span>1.2x</span></div>
+                                    <div class="payout-row small"><span>Others</span> <span>0.2x+</span></div>
+                                </div>
+                                <div class="bonus-info">
+                                    <p><strong>🌟 Scatter Bonus:</strong> 6+ same symbols anywhere!</p>
+                                    <p><strong>💫 More ways to win!</strong> Pairs pay too!</p>
+                                </div>
                             </div>
                         </div>
                         
@@ -362,15 +374,21 @@ class GameManager {
             return;
         }
         
-        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
-            this.showGameMessage('Please login to play', 'error');
-            return;
-        }
-        
-        if (betAmount > app.currentUser.mcBalance) {
+        // Check MC balance
+        const currentBalance = window.PlatformAPI ? window.PlatformAPI.getCurrentBalance() : 100000;
+        console.log('DEBUG: Blackjack deal - currentBalance:', currentBalance, 'betAmount:', betAmount);
+        if (betAmount > currentBalance) {
             this.showGameMessage('Insufficient balance', 'error');
             return;
         }
+        
+        const requestData = {
+            gameType: 'blackjack',
+            betAmount: betAmount,
+            action: 'deal',
+            currentBalance: currentBalance
+        };
+        console.log('DEBUG: Blackjack deal API request:', requestData);
         
         try {
             const response = await fetch('/api/play-game', {
@@ -379,11 +397,7 @@ class GameManager {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({
-                    gameType: 'blackjack',
-                    betAmount: betAmount,
-                    action: 'deal'
-                })
+                body: JSON.stringify(requestData)
             });
             
             const result = await response.json();
@@ -394,12 +408,7 @@ class GameManager {
                 this.updateBlackjackDisplay(result.gameData);
                 document.getElementById('blackjackTable').style.display = 'block';
                 document.getElementById('dealCards').style.display = 'none';
-                if (app.currentUser) {
-                    if (app.currentUser) {
-                        app.currentUser.mcBalance = result.newBalance;
-                        app.updateUserDisplay();
-                    }
-                }
+                this.updateBalance(result.newBalance);
             } else {
                 console.error('Blackjack error:', result.error);
                 this.showGameMessage(result.error, 'error');
@@ -424,7 +433,8 @@ class GameManager {
                     betAmount: betAmount,
                     action: 'hit',
                     playerHand: this.gameState.playerHand,
-                    dealerHand: this.gameState.dealerHand
+                    dealerHand: this.gameState.dealerHand,
+                    currentBalance: window.PlatformAPI ? window.PlatformAPI.getCurrentBalance() : 100000
                 })
             });
             
@@ -459,7 +469,8 @@ class GameManager {
                     betAmount: betAmount,
                     action: 'stand',
                     playerHand: this.gameState.playerHand,
-                    dealerHand: this.gameState.dealerHand
+                    dealerHand: this.gameState.dealerHand,
+                    currentBalance: window.PlatformAPI ? window.PlatformAPI.getCurrentBalance() : 100000
                 })
             });
             
@@ -583,10 +594,7 @@ class GameManager {
             <button onclick="gameManager.resetBlackjack()">☕ New Hand</button>
         `;
         
-        if (app.currentUser) {
-            app.currentUser.mcBalance = result.newBalance;
-            app.updateUserDisplay();
-        }
+        this.updateBalance(result.newBalance);
     }
 
     async flipCoin(choice) {
@@ -597,15 +605,21 @@ class GameManager {
             return;
         }
         
-        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
-            this.showGameMessage('Please login to play', 'error');
-            return;
-        }
-        
-        if (betAmount > app.currentUser.mcBalance) {
+        // Check MC balance
+        const currentBalance = window.PlatformAPI ? window.PlatformAPI.getCurrentBalance() : 100000;
+        console.log('DEBUG: Coinflip - currentBalance:', currentBalance, 'betAmount:', betAmount);
+        if (betAmount > currentBalance) {
             this.showGameMessage('Insufficient balance', 'error');
             return;
         }
+        
+        const requestData = {
+            gameType: 'coinflip',
+            betAmount: betAmount,
+            choice: choice,
+            currentBalance: currentBalance
+        };
+        console.log('DEBUG: Coinflip API request:', requestData);
         
         document.getElementById('coinAnimation').style.display = 'block';
         document.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -618,11 +632,7 @@ class GameManager {
                         'Content-Type': 'application/json'
                     },
                     credentials: 'include',
-                    body: JSON.stringify({
-                        gameType: 'coinflip',
-                        betAmount: betAmount,
-                        choice: choice
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
                 const result = await response.json();
@@ -631,10 +641,7 @@ class GameManager {
                 
                 if (result.success) {
                     this.showCoinflipResult(result);
-                    if (app.currentUser) {
-                        app.currentUser.mcBalance = result.newBalance;
-                        app.updateUserDisplay();
-                    }
+                    this.updateBalance(result.newBalance);
                 } else {
                     this.showGameMessage(result.error, 'error');
                 }
@@ -678,12 +685,14 @@ class GameManager {
             return;
         }
         
-        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
-            this.showGameMessage('Please login to play', 'error');
+        // PRIORITY: Use Pyramid Panel user first, then fallback to MasterCredits Casino
+        const user = (window.PlatformAPI && window.PlatformAPI.getCurrentUser()) || (app && app.currentUser);
+        if (!user || typeof user.mcBalance === 'undefined') {
+            this.showGameMessage('Game not available - please refresh the page', 'error');
             return;
         }
         
-        if (totalBet > app.currentUser.mcBalance) {
+        if (totalBet > user.mcBalance) {
             this.showGameMessage('Insufficient balance', 'error');
             return;
         }
@@ -701,7 +710,8 @@ class GameManager {
                     body: JSON.stringify({
                         gameType: 'starbound',
                         betAmount: totalBet,
-                        lines: numLines
+                        lines: numLines,
+                        currentBalance: currentBalance
                     })
                 });
                 
@@ -709,10 +719,7 @@ class GameManager {
                 
                 if (result.success) {
                     this.showStarboundResult(result);
-                    if (app.currentUser) {
-                        app.currentUser.mcBalance = result.newBalance;
-                        app.updateUserDisplay();
-                    }
+                    this.updateBalance(result.newBalance);
                 } else {
                     this.showGameMessage(result.error, 'error');
                 }
@@ -759,7 +766,11 @@ class GameManager {
             'UFO': '🛸',
             'PAW': '🐾',
             'FIRE': '🔥',
-            'GEM': '💎'
+            'GEM': '💎',
+            'BONE': '🦴',
+            'PLANET': '🪐',
+            'COMET': '☄️',
+            'ASTEROID': '🌑'
         };
         
         for (let i = 1; i <= 5; i++) {
@@ -779,11 +790,24 @@ class GameManager {
         const totalPayout = result.payout || 0;
         
         if (gameData.winningLines && gameData.winningLines.length > 0) {
-            message = `🚀 Mission Success! 🚀<br>`;
-            message += `Winning combinations: ${gameData.winningLines.length}<br>`;
-            message += `Total payout: ${app.formatMC(totalPayout)} MC`;
+            message = `🚀 <strong>Mission Success!</strong> 🚀<br>`;
+            
+            gameData.winningLines.forEach(line => {
+                const symbol = symbolMap[line.symbol] || line.symbol;
+                const winType = line.type || 'consecutive';
+                
+                if (winType === 'scatter') {
+                    message += `🌟 Scatter Bonus: ${symbol}×${line.count} anywhere = ${app.formatMC(line.payout)} MC<br>`;
+                } else if (winType === 'pair') {
+                    message += `💫 Pair Win: ${symbol}×${line.count} on line ${line.line + 1} = ${app.formatMC(line.payout)} MC<br>`;
+                } else {
+                    message += `Line ${line.line + 1}: ${symbol}×${line.count} = ${app.formatMC(line.payout)} MC<br>`;
+                }
+            });
+            
+            message += `<strong>Total: ${app.formatMC(totalPayout)} MC</strong>`;
         } else {
-            message = `🛸 No matches this time. Keep exploring! 🛸`;
+            message = `🛸 No matches this time. But now pairs pay too! Try again! 🛸`;
         }
         
         document.getElementById('starboundResult').innerHTML = `
@@ -828,7 +852,36 @@ class GameManager {
     selectPrediction(type) {
         document.querySelectorAll('.prediction-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`[data-prediction="${type}"]`).classList.add('active');
+        
+        const detailsDiv = document.getElementById('predictionDetails');
+        detailsDiv.innerHTML = '';
+        
+        // Show prediction-specific input fields
+        if (type === 'sum_exact') {
+            const diceCount = parseInt(document.querySelector('.dice-count-btn.active').dataset.count);
+            const diceSides = parseInt(document.querySelector('.dice-type-btn.active').dataset.sides);
+            const minSum = diceCount;
+            const maxSum = diceCount * diceSides;
+            
+            detailsDiv.innerHTML = `
+                <label for="targetSum">Target Sum (${minSum}-${maxSum}):</label>
+                <input type="number" id="targetSum" min="${minSum}" max="${maxSum}" value="${Math.floor((minSum + maxSum) / 2)}">
+            `;
+            detailsDiv.style.display = 'block';
+        } else if (type === 'contains_number') {
+            const diceSides = parseInt(document.querySelector('.dice-type-btn.active').dataset.sides);
+            
+            detailsDiv.innerHTML = `
+                <label for="targetNumber">Target Number (1-${diceSides}):</label>
+                <input type="number" id="targetNumber" min="1" max="${diceSides}" value="1">
+            `;
+            detailsDiv.style.display = 'block';
+        } else {
+            detailsDiv.style.display = 'none';
+        }
+        
         document.getElementById('rollDice').disabled = false;
+        this.updatePayouts();
     }
 
     updateDiceDisplay(count) {
@@ -844,14 +897,182 @@ class GameManager {
     }
 
     updatePayouts() {
-        // Simple payout calculation for now
-        document.getElementById('exactSumPayout').textContent = '25x';
-        document.getElementById('allSamePayout').textContent = '50x';
-        document.getElementById('containsNumberPayout').textContent = '3x';
+        const diceCount = parseInt(document.querySelector('.dice-count-btn.active').dataset.count);
+        const diceSides = parseInt(document.querySelector('.dice-type-btn.active').dataset.sides);
+        
+        // Calculate realistic payouts based on probability
+        
+        // All same payout
+        const allSameProbability = diceSides / Math.pow(diceSides, diceCount);
+        const allSameMultiplier = Math.round((1.0 / allSameProbability) * 0.8);
+        document.getElementById('allSamePayout').textContent = `${allSameMultiplier}x`;
+        
+        // Contains number payout (average for any number)
+        const doesntContainProbability = Math.pow((diceSides - 1) / diceSides, diceCount);
+        const containsProbability = 1 - doesntContainProbability;
+        const containsMultiplier = Math.max(1.2, Math.round((1.0 / containsProbability) * 0.9 * 10) / 10);
+        document.getElementById('containsNumberPayout').textContent = `${containsMultiplier}x`;
+        
+        // Update exact sum payout if that prediction is selected
+        if (document.querySelector('[data-prediction="sum_exact"]').classList.contains('active')) {
+            const minSum = diceCount;
+            const maxSum = diceCount * diceSides;
+            const exactSumProbability = Math.max(0.001, 1.0 / (maxSum - minSum + 1));
+            const exactSumMultiplier = Math.min(50, Math.round((1.0 / exactSumProbability) * 0.8));
+            document.getElementById('exactSumPayout').textContent = `${exactSumMultiplier}x`;
+        } else {
+            document.getElementById('exactSumPayout').textContent = '25x';
+        }
     }
 
-    rollMastersDice() {
-        this.showGameMessage('Master\'s Dice coming soon!', 'info');
+    async rollMastersDice() {
+        if (!this.validateUser()) return;
+        
+        const betAmount = parseInt(document.getElementById('diceBet').value);
+        if (isNaN(betAmount) || betAmount < 1000) {
+            this.showGameMessage('Minimum bet is 1,000 MC', 'error');
+            return;
+        }
+        
+        const diceCount = parseInt(document.querySelector('.dice-count-btn.active').dataset.count);
+        const diceSides = parseInt(document.querySelector('.dice-type-btn.active').dataset.sides);
+        const selectedPrediction = document.querySelector('.prediction-btn.active');
+        
+        if (!selectedPrediction) {
+            this.showGameMessage('Please select a prediction', 'error');
+            return;
+        }
+        
+        const predictionType = selectedPrediction.dataset.prediction;
+        
+        // Show animation
+        document.getElementById('diceDisplay').style.display = 'none';
+        document.getElementById('diceAnimation').style.display = 'block';
+        document.getElementById('rollDice').disabled = true;
+        
+        try {
+            const response = await fetch('/api/play-game', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    gameType: 'mastersdice',
+                    betAmount: betAmount,
+                    gameData: {
+                        diceCount: diceCount,
+                        diceSides: diceSides,
+                        predictionType: predictionType,
+                        predictionDetails: this.getCurrentPredictionDetails()
+                    },
+                    currentBalance: window.PlatformAPI ? window.PlatformAPI.getCurrentBalance() : 100000
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update balance
+                this.updateBalance(result.newBalance);
+                
+                // Show dice results with animation
+                await this.animateDiceRoll(result.gameData.diceResults);
+                
+                // Show final results
+                this.showMastersDiceResults(result);
+            } else {
+                this.showGameMessage(result.error || 'Game failed', 'error');
+            }
+        } catch (error) {
+            this.showGameMessage('Network error', 'error');
+        }
+        
+        document.getElementById('rollDice').disabled = false;
+    }
+    
+    getCurrentPredictionDetails() {
+        const predictionType = document.querySelector('.prediction-btn.active').dataset.prediction;
+        const details = {};
+        
+        if (predictionType === 'sum_exact') {
+            details.targetSum = parseInt(document.getElementById('targetSum')?.value) || 0;
+        } else if (predictionType === 'contains_number') {
+            details.targetNumber = parseInt(document.getElementById('targetNumber')?.value) || 1;
+        }
+        
+        return details;
+    }
+    
+    async animateDiceRoll(diceResults) {
+        const diceContainer = document.getElementById('diceContainer');
+        diceContainer.innerHTML = '';
+        
+        // Create dice elements
+        diceResults.forEach((result, index) => {
+            const die = document.createElement('div');
+            die.className = 'rolling-die';
+            die.id = `rollDie${index + 1}`;
+            die.textContent = '🎲';
+            diceContainer.appendChild(die);
+        });
+        
+        // Animate for 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Show results
+        document.getElementById('diceAnimation').style.display = 'none';
+        document.getElementById('diceDisplay').style.display = 'block';
+        
+        const diceArea = document.getElementById('diceArea');
+        diceResults.forEach((result, index) => {
+            const dieElement = document.getElementById(`dice${index + 1}`);
+            if (dieElement) {
+                dieElement.textContent = this.getDieFace(result);
+                dieElement.classList.add('result-die');
+            }
+        });
+    }
+    
+    getDieFace(value) {
+        const faces = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        return faces[value] || `[${value}]`;
+    }
+    
+    showMastersDiceResults(result) {
+        const resultDiv = document.getElementById('mastersDiceResult');
+        const { diceResults, predictionResult, payout } = result.gameData;
+        const sum = diceResults.reduce((acc, val) => acc + val, 0);
+        
+        let resultText = `<div class="dice-result">`;
+        resultText += `<h4>🎲 Dice Results: ${diceResults.join(', ')} (Sum: ${sum})</h4>`;
+        resultText += `<p><strong>Prediction:</strong> ${predictionResult.description}</p>`;
+        
+        if (predictionResult.success) {
+            resultText += `<p class="win-result">🎉 YOU WIN! +${this.formatMC(payout)} MC</p>`;
+        } else {
+            resultText += `<p class="lose-result">😞 You lose. Better luck next time!</p>`;
+        }
+        
+        resultText += `</div>`;
+        resultDiv.innerHTML = resultText;
+        
+        this.showGameMessage(predictionResult.success ? 'You won!' : 'You lost', predictionResult.success ? 'success' : 'error');
+    }
+
+    validateUser() {
+        // Always valid - no user system required
+        return true;
+    }
+
+    updateBalance(newBalance) {
+        // Update MC balance in platform storage
+        if (window.PlatformAPI && window.PlatformAPI.updateMCBalance) {
+            window.PlatformAPI.updateMCBalance(newBalance);
+        }
+        
+        // Update app balance if it exists (legacy support)
+        if (window.app && window.app.updateBalance) {
+            window.app.updateBalance(newBalance);
+        }
     }
 
     closeGame() {
@@ -881,12 +1102,14 @@ class GameManager {
             return;
         }
 
-        if (!app.currentUser || typeof app.currentUser.mcBalance === 'undefined') {
-            this.showGameMessage('Please login to play', 'error');
+        // PRIORITY: Use Pyramid Panel user first, then fallback to MasterCredits Casino
+        const user = (window.PlatformAPI && window.PlatformAPI.getCurrentUser()) || (app && app.currentUser);
+        if (!user || typeof user.mcBalance === 'undefined') {
+            this.showGameMessage('Game not available - please refresh the page', 'error');
             return;
         }
         
-        if (app.currentUser.mcBalance < betAmount) {
+        if (user.mcBalance < betAmount) {
             this.showGameMessage('Insufficient balance for this investment', 'error');
             return;
         }
@@ -996,17 +1219,15 @@ class GameManager {
                     betAmount: this.currentBet,
                     action: 'sell',
                     itemIndex: this.selectedItemIndex,
-                    selectedItem: this.selectedItem
+                    selectedItem: this.selectedItem,
+                    currentBalance: window.PlatformAPI ? window.PlatformAPI.getCurrentBalance() : 100000
                 })
             });
 
             const result = await response.json();
             
             if (response.ok) {
-                if (app.currentUser) {
-                    app.currentUser.mcBalance = result.newBalance;
-                    app.updateUserDisplay();
-                }
+                this.updateBalance(result.newBalance);
                 
                 this.displayMerchantResult(result);
             } else {
@@ -1023,7 +1244,7 @@ class GameManager {
         
         const payout = gameResult.payout || 0;
         const profit = payout - this.currentBet;
-        const merchantMultiplier = gameResult.gameData.merchantMultiplier || 0;
+        const merchantMultiplier = gameResult.data?.merchantMultiplier || gameResult.gameData?.merchantMultiplier || 0;
         
         let message = `🐕‍💼 The merchant examined your ${this.selectedItem.icon} ${this.selectedItem.name}<br>`;
         message += `💰 Merchant paid: ${app.formatMC(payout)} MC (${merchantMultiplier}x multiplier)<br>`;
@@ -1073,16 +1294,44 @@ window.playGame = gameManager.playGame.bind(gameManager);
 window.closeGame = gameManager.closeGame.bind(gameManager);
 window.gameManager = gameManager;
 
-document.getElementById('starboundBet')?.addEventListener('input', () => {
-    const betPerLine = parseFloat(document.getElementById('starboundBet').value) || 0;
-    const numLines = parseInt(document.getElementById('starboundLines').value) || 1;
+// Function to update Starbound total bet display
+function updateStarboundTotalBet() {
+    const betInput = document.getElementById('starboundBet');
+    const linesInput = document.getElementById('starboundLines');
+    const totalDisplay = document.getElementById('totalBet');
+    
+    if (!betInput || !linesInput || !totalDisplay) return;
+    
+    const betPerLine = parseFloat(betInput.value) || 0;
+    const numLines = parseInt(linesInput.value) || 1;
     const totalBet = betPerLine * numLines;
-    document.getElementById('totalBet').textContent = `${app.formatMC(totalBet)} MC`;
-});
+    
+    // Use app.formatMC if available, otherwise format manually
+    if (window.app && window.app.formatMC) {
+        totalDisplay.textContent = `${app.formatMC(totalBet)} MC`;
+    } else {
+        totalDisplay.textContent = `${totalBet.toLocaleString()} MC`;
+    }
+    
+    console.log(`Updated Starbound total bet: ${betPerLine} x ${numLines} = ${totalBet} MC`);
+}
 
-document.getElementById('starboundLines')?.addEventListener('change', () => {
-    const betPerLine = parseFloat(document.getElementById('starboundBet').value) || 0;
-    const numLines = parseInt(document.getElementById('starboundLines').value) || 1;
-    const totalBet = betPerLine * numLines;
-    document.getElementById('totalBet').textContent = `${app.formatMC(totalBet)} MC`;
-});
+// Set up event listeners with delayed initialization
+setTimeout(() => {
+    const betInput = document.getElementById('starboundBet');
+    const linesInput = document.getElementById('starboundLines');
+    
+    if (betInput) {
+        betInput.addEventListener('input', updateStarboundTotalBet);
+        // Update immediately when page loads
+        updateStarboundTotalBet();
+    }
+    
+    if (linesInput) {
+        linesInput.addEventListener('change', updateStarboundTotalBet);
+    }
+}, 1000); // Delay to ensure elements exist and app is loaded
+
+// Also add event listeners with the old method as backup
+document.getElementById('starboundBet')?.addEventListener('input', updateStarboundTotalBet);
+document.getElementById('starboundLines')?.addEventListener('change', updateStarboundTotalBet);

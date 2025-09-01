@@ -66,22 +66,17 @@
                 </nav>
                 
                 <div class="user-section">
-                    <div id="userInfo" class="user-info" style="display: none;">
+                    <div id="userProfile" class="user-info">
                         <div class="user-avatar">
-                            <img id="userAvatar" src="" alt="Avatar">
+                            <img id="profileAvatarIcon" src="" alt="Avatar">
                         </div>
                         <div class="user-details">
-                            <span id="username">Player</span>
-                            <span id="userLevel">Level 1</span>
+                            <span id="profileUsername">Guest</span>
+                            <span id="profileBalance">MC: 100,000.0000</span>
                         </div>
                         <div class="user-menu">
-                            <button class="profile-btn" onclick="showProfile()">Profile</button>
-                            <button class="logout-btn" onclick="logout()">Logout</button>
+                            <button id="refreshGiftBtn" class="refresh-gift-btn" onclick="manualRefreshGift()">🎁 Refresh Gift</button>
                         </div>
-                    </div>
-                    <div id="authButtons" class="auth-buttons">
-                        <button class="login-btn" onclick="showLogin()">Login</button>
-                        <button class="register-btn" onclick="showRegister()">Register</button>
                     </div>
                 </div>
             </div>
@@ -173,104 +168,29 @@
         </footer>
     </div>
 
-    <!-- Authentication Modal -->
-    <div id="auth-modal" class="modal hidden">
-        <div class="modal-content auth-modal-content">
-            <div class="modal-header">
-                <h3 id="authTitle">Login</h3>
-                <button class="modal-close" onclick="closeAuthModal()">×</button>
-            </div>
-            <div class="auth-container">
-                <div class="auth-tabs">
-                    <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
-                    <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
-                </div>
-                
-                <form id="loginForm" class="auth-form active">
-                    <div class="form-group">
-                        <label for="loginUsername">Username</label>
-                        <input type="text" id="loginUsername" required maxlength="12" 
-                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" required>
-                    </div>
-                    <button type="submit" class="auth-btn">Login to Platform</button>
-                </form>
-                
-                <form id="registerForm" class="auth-form">
-                    <div class="form-group">
-                        <label for="registerUsername">Username (1-12 characters, letters/numbers only)</label>
-                        <input type="text" id="registerUsername" required maxlength="12" 
-                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
-                    </div>
-                    <div class="form-group">
-                        <label for="registerPassword">Password (4-30 characters)</label>
-                        <input type="password" id="registerPassword" required minlength="4" maxlength="30">
-                    </div>
-                    <div class="form-group">
-                        <label for="backupEmail">Backup Email (Optional)</label>
-                        <input type="email" id="backupEmail" placeholder="For account recovery">
-                    </div>
-                    <div class="form-group captcha-group">
-                        <label for="captchaInput">Enter the captcha</label>
-                        <div class="captcha-container">
-                            <img id="captchaImage" src="" alt="Captcha">
-                            <button type="button" onclick="refreshCaptcha()" class="refresh-captcha">↻</button>
-                        </div>
-                        <input type="text" id="captchaInput" required maxlength="5">
-                    </div>
-                    <button type="submit" class="auth-btn">Create Platform Account</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- Profile Modal -->
+    <!-- Guest Profile Modal -->
     <div id="profile-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Platform Profile</h3>
+                <h3>Guest Profile</h3>
                 <button class="modal-close" onclick="closeProfile()">×</button>
             </div>
             <div class="profile-content">
                 <div class="profile-overview">
                     <div class="profile-avatar">
-                        <img id="profileAvatar" src="" alt="Avatar">
+                        <img id="profileAvatar" src="" alt="Guest Avatar">
                     </div>
                     <div class="profile-info">
-                        <h4 id="profileUsername">Player</h4>
-                        <p id="profileLevel">Platform Level 1</p>
-                        <p id="profileJoined">Joined: --</p>
+                        <h4 id="profileUsername">Guest</h4>
+                        <p id="profileBalance">Balance: 100,000.0000 MC</p>
+                        <p class="guest-note">🎮 Guest Mode - Data saved locally in browser</p>
                     </div>
                 </div>
                 
-                <div class="games-progress">
-                    <h4>Games Progress</h4>
-                    <div class="game-progress-list">
-                        <div class="game-progress-item" id="masterCreditsProgress">
-                            <div class="game-icon">🎰</div>
-                            <div class="progress-info">
-                                <span class="game-name">MasterCredits Casino</span>
-                                <div class="progress-stats">
-                                    <span id="mcLevel">Level --</span>
-                                    <span id="mcBalance">Balance: -- MC</span>
-                                    <span id="mcSkillPoints">Skill Points: --</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="game-progress-item" id="pyramidRunnerProgress">
-                            <div class="game-icon">🏃</div>
-                            <div class="progress-info">
-                                <span class="game-name">Pyramid Runner</span>
-                                <div class="progress-stats">
-                                    <span id="prHighScore">High Score: --</span>
-                                    <span id="prLevelsCompleted">Levels: --</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="guest-actions">
+                    <button onclick="changeGuestName()" class="guest-action-btn">✏️ Change Name</button>
+                    <button onclick="manualRefreshGift()" class="guest-action-btn">🎁 Get Refresh Gift</button>
                 </div>
             </div>
         </div>

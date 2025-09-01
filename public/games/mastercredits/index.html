@@ -7,6 +7,30 @@
     <link rel="stylesheet" href="/css/platform.css">
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <style>
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .user-balance {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #f39c12;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+        .user-balance:contains('⚠️') {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
 </head>
 <body>
     <!-- Pyramid Panel -->
@@ -24,19 +48,9 @@
                     <a href="/" class="nav-link">Contact</a>
                 </nav>
                 <div class="profile-section">
-                    <div id="userProfile" class="user-profile" style="display: none;">
-                        <div class="profile-avatar">
-                            <img id="profileAvatarIcon" src="" alt="Avatar">
-                        </div>
-                        <span id="profileUsername">Player</span>
-                        <div class="profile-menu">
-                            <button class="profile-btn" onclick="window.PlatformAPI.showProfile()">Profile</button>
-                            <button class="logout-btn" onclick="window.PlatformAPI.logout()">Logout</button>
-                        </div>
-                    </div>
-                    <div id="authSection" class="auth-section">
-                        <button class="login-btn" onclick="window.PlatformAPI.showLogin()">Login</button>
-                        <button class="register-btn" onclick="window.PlatformAPI.showRegister()">Register</button>
+                    <div class="mc-balance-display">
+                        <span class="balance-label">Balance:</span>
+                        <span id="mcBalanceDisplay" class="balance-amount">100,000.0000 MC</span>
                     </div>
                 </div>
             </div>
@@ -53,21 +67,11 @@
                 <nav class="nav-menu">
                     <a href="#home" onclick="showSection('home')">Home</a>
                     <a href="#games" onclick="showSection('games')">Games</a>
-                    <a href="#profile" onclick="showSection('profile')">Profile</a>
-                    <a href="#talents" onclick="showSection('talents')">Talents</a>
                     <a href="#chat" onclick="toggleChat()">Chat</a>
                 </nav>
-                <div class="user-info" id="userInfo" style="display: none;">
-                    <div class="user-avatar">
-                        <img id="userAvatar" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTkiIGZpbGw9IiM0MTY5RTEiIHN0cm9rZT0iI0ZGRDcwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTYiIHI9IjIiIGZpbGw9IiNGRkQ3MDAiLz4KPGNpcmNsZSBjeD0iMjUiIGN5PSIxNiIgcj0iMiIgZmlsbD0iI0ZGRDcwMCIvPgo8cGF0aCBkPSJNIDEzIDI2IFEgMjAgMzAgMjcgMjYiIHN0cm9rZT0iI0ZGRDcwMCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=" alt="Avatar">
-                    </div>
-                    <div class="user-stats">
-                        <span id="username">Player</span>
-                        <span id="userLevel">Level 1</span>
-                        <span id="headerMcBalance">MC: 100,000.0000</span>
-                    </div>
+                <div class="balance-info">
+                    <span id="headerMcBalance" class="main-balance">MC: 100,000.0000</span>
                     <button class="handout-btn" onclick="requestHandout()">Free MC</button>
-                    <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
             </div>
         </header>
@@ -502,108 +506,7 @@
         </div>
     </div>
 
-    <!-- Authentication Modal -->
-    <div id="auth-modal" class="modal hidden">
-        <div class="modal-content auth-modal-content">
-            <div class="modal-header">
-                <h3 id="authTitle">Login</h3>
-                <button class="modal-close" onclick="closeAuthModal()">×</button>
-            </div>
-            <div class="auth-container">
-                <div class="auth-tabs">
-                    <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
-                    <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
-                </div>
-                
-                <form id="loginForm" class="auth-form active">
-                    <div class="form-group">
-                        <label for="loginUsername">Username</label>
-                        <input type="text" id="loginUsername" required maxlength="12" 
-                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" required>
-                    </div>
-                    <button type="submit" class="auth-btn">Login to Platform</button>
-                </form>
-                
-                <form id="registerForm" class="auth-form">
-                    <div class="form-group">
-                        <label for="registerUsername">Username (1-12 characters, letters/numbers only)</label>
-                        <input type="text" id="registerUsername" required maxlength="12" 
-                               pattern="[a-zA-Z0-9]+" title="Letters and numbers only">
-                    </div>
-                    <div class="form-group">
-                        <label for="registerPassword">Password (4-30 characters)</label>
-                        <input type="password" id="registerPassword" required minlength="4" maxlength="30">
-                    </div>
-                    <div class="form-group">
-                        <label for="backupEmail">Backup Email (Optional)</label>
-                        <input type="email" id="backupEmail" placeholder="For account recovery">
-                    </div>
-                    <div class="form-group captcha-group">
-                        <label for="captchaInput">Enter the captcha</label>
-                        <div class="captcha-container">
-                            <img id="captchaImage" src="" alt="Captcha">
-                            <button type="button" onclick="refreshCaptcha()" class="refresh-captcha">↻</button>
-                        </div>
-                        <input type="text" id="captchaInput" required maxlength="5">
-                    </div>
-                    <button type="submit" class="auth-btn">Create Platform Account</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- Profile Modal -->
-    <div id="profile-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Platform Profile</h3>
-                <button class="modal-close" onclick="closeProfile()">×</button>
-            </div>
-            <div class="profile-content">
-                <div class="profile-overview">
-                    <div class="profile-avatar">
-                        <img id="profileAvatar" src="" alt="Avatar">
-                    </div>
-                    <div class="profile-info">
-                        <h4 id="profileUsername">Player</h4>
-                        <p id="profileLevel">Platform Level 1</p>
-                        <p id="profileJoined">Joined: --</p>
-                    </div>
-                </div>
-                
-                <div class="games-progress">
-                    <h4>Games Progress</h4>
-                    <div class="game-progress-list">
-                        <div class="game-progress-item" id="masterCreditsProgress">
-                            <div class="game-icon">🎰</div>
-                            <div class="progress-info">
-                                <span class="game-name">MasterCredits Casino</span>
-                                <div class="progress-stats">
-                                    <span id="mcLevel">Level --</span>
-                                    <span id="gameMcBalance">Balance: -- MC</span>
-                                    <span id="mcSkillPoints">Skill Points: --</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="game-progress-item" id="pyramidRunnerProgress">
-                            <div class="game-icon">🏃</div>
-                            <div class="progress-info">
-                                <span class="game-name">Pyramid Runner</span>
-                                <div class="progress-stats">
-                                    <span id="prHighScore">High Score: --</span>
-                                    <span id="prLevelsCompleted">Levels: --</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/platform.js"></script>

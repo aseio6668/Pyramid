@@ -13,7 +13,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const sharp = require('sharp');
 const cron = require('node-cron');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 
 const app = express();
 const server = http.createServer(app);
@@ -72,8 +72,8 @@ app.get('/games/galaxv', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'games', 'galaxv', 'index.html'));
 });
 
-app.get('/games/fighterfame', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'games', 'fighterfame', 'index.html'));
+app.get('/games/famousfighter', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'games', 'famousfighter', 'index.html'));
 });
 
 app.get('/games/par4', (req, res) => {
@@ -139,8 +139,8 @@ db.serialize(() => {
         FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
-    // Game-specific data for FighterFame
-    db.run(`CREATE TABLE IF NOT EXISTS fighterfame_data (
+    // Game-specific data for FamousFighter
+    db.run(`CREATE TABLE IF NOT EXISTS famousfighter_data (
         user_id INTEGER PRIMARY KEY,
         wins INTEGER DEFAULT 0,
         losses INTEGER DEFAULT 0,
@@ -208,14 +208,6 @@ const upload = multer({
         }
     }
 });
-
-function requireAuth(req, res, next) {
-    if (req.session.userId) {
-        next();
-    } else {
-        res.status(401).json({ error: 'Authentication required' });
-    }
-}
 
 function requireAdmin(req, res, next) {
     if (req.session.isAdmin) {
@@ -396,8 +388,12 @@ app.post('/api/admin/change-password', requireAdmin, (req, res) => {
 app.get('/api/captcha', (req, res) => {
     const captcha = generateCaptcha();
     req.session.captcha = captcha;
-    const image = createCaptchaImage(captcha);
-    res.json({ image });
+    const svgImage = createCaptchaImage(captcha);
+    
+    // Convert SVG to data URL for proper image display
+    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgImage)}`;
+    
+    res.json({ image: dataUrl });
 });
 
 app.post('/api/register', (req, res) => {
@@ -446,9 +442,9 @@ app.post('/api/register', (req, res) => {
             if (gvErr) console.error('Failed to initialize GalexV data:', gvErr);
         });
         
-        // Initialize FighterFame data for new user
-        db.run('INSERT INTO fighterfame_data (user_id) VALUES (?)', [userId], (ffErr) => {
-            if (ffErr) console.error('Failed to initialize FighterFame data:', ffErr);
+        // Initialize FamousFighter data for new user
+        db.run('INSERT INTO famousfighter_data (user_id) VALUES (?)', [userId], (ffErr) => {
+            if (ffErr) console.error('Failed to initialize FamousFighter data:', ffErr);
         });
         
         req.session.userId = userId;
@@ -506,209 +502,20 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// Free funds endpoint
-app.post('/api/claim-free-funds', requireAuth, (req, res) => {
-    db.get('SELECT mc_balance FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (err, data) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        
-        if (!data) {
-            return res.status(404).json({ success: false, message: 'Player data not found' });
-        }
-        
-        if (data.mc_balance >= 1000) {
-            return res.status(400).json({ success: false, message: 'You can only claim free funds when you have less than 1000 MC' });
-        }
-        
-        const freeAmount = 10000;
-        const newBalance = data.mc_balance + freeAmount;
-        
-        db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
-            if (updateErr) {
-                return res.status(500).json({ success: false, message: 'Failed to update balance' });
-            }
-            
-            res.json({ 
-                success: true, 
-                newBalance: newBalance,
-                amount: freeAmount
-            });
-        });
-    });
+// Simple talent endpoints (no authentication required)
+app.get('/api/talents', (req, res) => {
+    // Return empty talents for simplified mode
+    res.json([]);
 });
 
-// Platform profile endpoint
-app.get('/api/profile', requireAuth, (req, res) => {
-    // Get main user data
-    db.get('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, user) => {
-        if (err || !user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        // Get MasterCredits data
-        db.get('SELECT * FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (mcErr, mcData) => {
-            // Get Pyramid Runner data
-            db.get('SELECT * FROM pyramidrunner_data WHERE user_id = ?', [req.session.userId], (prErr, prData) => {
-                res.json({
-                    username: user.username,
-                    level: user.platform_level,
-                    experience: user.platform_experience,
-                    avatar: user.avatar_path,
-                    email: user.email,
-                    createdAt: user.created_at,
-                    unlockedAvatars: JSON.parse(user.unlocked_avatars || '[]'),
-                    masterCreditsData: mcData ? {
-                        balance: mcData.mc_balance,
-                        level: mcData.level,
-                        experience: mcData.experience,
-                        skillPoints: mcData.skill_points,
-                        unlockedEmojis: JSON.parse(mcData.unlocked_emojis || '[]')
-                    } : null,
-                    pyramidRunnerData: prData ? {
-                        highScore: prData.high_score,
-                        levelsCompleted: prData.levels_completed,
-                        currentCharacter: prData.current_character,
-                        unlockedCharacters: JSON.parse(prData.unlocked_characters || '[]')
-                    } : null
-                });
-            });
-        });
-    });
+app.post('/api/talents/allocate', (req, res) => {
+    // Talents disabled in simplified mode
+    res.json({ success: false, message: 'Talents disabled in simplified mode' });
 });
 
-// Legacy user endpoint for MasterCredits compatibility
-app.get('/api/user', requireAuth, (req, res) => {
-    db.get('SELECT * FROM users u LEFT JOIN mastercredits_data mc ON u.id = mc.user_id WHERE u.id = ?', [req.session.userId], (err, user) => {
-        if (err || !user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        // If MasterCredits data doesn't exist, initialize it
-        if (!user.mc_balance && user.mc_balance !== 0) {
-            db.run('INSERT OR IGNORE INTO mastercredits_data (user_id) VALUES (?)', [req.session.userId], (initErr) => {
-                if (initErr) console.error('Failed to initialize MasterCredits data:', initErr);
-                
-                // Re-fetch the user data with the initialized MC data
-                db.get('SELECT * FROM users u LEFT JOIN mastercredits_data mc ON u.id = mc.user_id WHERE u.id = ?', [req.session.userId], (refetchErr, refetchedUser) => {
-                    if (refetchErr || !refetchedUser) {
-                        return res.status(404).json({ error: 'User not found after initialization' });
-                    }
-                    
-                    res.json({
-                        username: refetchedUser.username,
-                        mcBalance: refetchedUser.mc_balance || 100000,
-                        level: refetchedUser.level || 1,
-                        experience: refetchedUser.experience || 0,
-                        skillPoints: refetchedUser.skill_points || 0,
-                        avatarPath: refetchedUser.avatar_path,
-                        unlockedAvatars: JSON.parse(refetchedUser.unlocked_avatars || '[]'),
-                        unlockedEmojis: JSON.parse(refetchedUser.unlocked_emojis || '[]')
-                    });
-                });
-            });
-        } else {
-            res.json({
-                username: user.username,
-                mcBalance: user.mc_balance || 100000,
-                level: user.level || 1,
-                experience: user.experience || 0,
-                skillPoints: user.skill_points || 0,
-                avatarPath: user.avatar_path,
-                unlockedAvatars: JSON.parse(user.unlocked_avatars || '[]'),
-                unlockedEmojis: JSON.parse(user.unlocked_emojis || '[]')
-            });
-        }
-    });
-});
-
-app.post('/api/handout', requireAuth, (req, res) => {
-    db.get('SELECT last_handout, mc_balance FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (err, mcData) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        
-        if (!mcData) {
-            // Initialize MasterCredits data if it doesn't exist
-            db.run('INSERT INTO mastercredits_data (user_id) VALUES (?)', [req.session.userId], (initErr) => {
-                if (initErr) {
-                    return res.status(500).json({ error: 'Failed to initialize game data' });
-                }
-                // Retry with new data
-                return app.post('/api/handout', requireAuth, (req, res));
-            });
-            return;
-        }
-        
-        const now = new Date();
-        const lastHandout = mcData.last_handout ? new Date(mcData.last_handout) : null;
-        
-        if (lastHandout && (now - lastHandout) < 30000) {
-            return res.status(400).json({ error: 'Must wait 30 seconds between handouts' });
-        }
-        
-        if (mcData.mc_balance > 1000) {
-            return res.status(400).json({ error: 'Can only get handout when balance is below 1000 MC' });
-        }
-        
-        const handoutAmount = 10000;
-        
-        db.run('UPDATE mastercredits_data SET mc_balance = mc_balance + ?, last_handout = CURRENT_TIMESTAMP WHERE user_id = ?', 
-            [handoutAmount, req.session.userId], (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to process handout' });
-            }
-            
-            res.json({ success: true, amount: handoutAmount, newBalance: mcData.mc_balance + handoutAmount });
-        });
-    });
-});
-
-app.post('/api/upload-avatar', requireAuth, upload.single('avatar'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-        
-        const outputPath = `uploads/avatars/user_${req.session.userId}_${Date.now()}.jpg`;
-        
-        await sharp(req.file.path)
-            .resize(150, 150)
-            .jpeg({ quality: 80 })
-            .toFile(outputPath);
-        
-        fs.unlinkSync(req.file.path);
-        
-        db.run('UPDATE users SET avatar_path = ? WHERE id = ?', [`/${outputPath}`, req.session.userId], (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to update avatar' });
-            }
-            
-            res.json({ success: true, avatarPath: `/${outputPath}` });
-        });
-        
-    } catch (error) {
-        if (req.file) {
-            fs.unlinkSync(req.file.path);
-        }
-        res.status(500).json({ error: 'Failed to process avatar' });
-    }
-});
-
-app.post('/api/select-avatar', requireAuth, (req, res) => {
-    const { avatarPath } = req.body;
-    
-    if (!avatarPath) {
-        return res.status(400).json({ error: 'Avatar path required' });
-    }
-    
-    db.run('UPDATE users SET avatar_path = ? WHERE id = ?', [avatarPath, req.session.userId], (err) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to update avatar' });
-        }
-        
-        res.json({ success: true });
-    });
+app.post('/api/talents/reset', (req, res) => {
+    // Talents disabled in simplified mode
+    res.json({ success: false, message: 'Talents disabled in simplified mode' });
 });
 
 function updateUserStats(userId, experienceGained, callback) {
@@ -874,480 +681,280 @@ function handlePinataPartyGame(requestData, mcData, callback) {
     }
 }
 
-app.post('/api/play-game', requireAuth, (req, res) => {
-    const { gameType, betAmount, action, choice, lines, playerHand, dealerHand } = req.body;
+// Master's Dice Game Handler
+function handleMastersDiceGame(requestData, mcData, callback) {
+    const { betAmount, gameData } = requestData;
+    const { diceCount, diceSides, predictionType, predictionDetails } = gameData;
+    
+    const newBalance = mcData.mc_balance - betAmount;
+    
+    if (newBalance < 0) {
+        return callback(new Error('Insufficient balance'));
+    }
+    
+    // Roll the dice
+    const diceResults = [];
+    for (let i = 0; i < diceCount; i++) {
+        diceResults.push(Math.floor(Math.random() * diceSides) + 1);
+    }
+    
+    // Calculate prediction result
+    const predictionResult = calculateDicePrediction(diceResults, predictionType, predictionDetails, diceSides, diceCount);
+    
+    // Calculate payout
+    let payout = 0;
+    if (predictionResult.success) {
+        payout = betAmount * predictionResult.multiplier;
+    }
+    
+    const finalBalance = newBalance + payout;
+    
+    // Calculate experience based on performance
+    let experienceGained = 3; // Base experience
+    experienceGained += Math.floor(betAmount / 2000); // Bet size bonus
+    
+    if (predictionResult.success) {
+        experienceGained += Math.floor(payout / 5000); // Win bonus
+        // Bonus for difficult predictions
+        if (predictionResult.multiplier >= 10) {
+            experienceGained += 10; // High odds bonus
+        }
+    }
+    
+    callback(null, {
+        success: true,
+        betAmount: betAmount,
+        payout: payout,
+        newBalance: finalBalance,
+        experienceGained: experienceGained,
+        data: {
+            diceResults: diceResults,
+            predictionResult: predictionResult,
+            payout: payout
+        }
+    });
+}
+
+function calculateDicePrediction(diceResults, predictionType, predictionDetails, diceSides, diceCount) {
+    const sum = diceResults.reduce((acc, val) => acc + val, 0);
+    let success = false;
+    let multiplier = 1.0;
+    let description = '';
+    
+    switch (predictionType) {
+        case 'sum_exact':
+            const targetSum = predictionDetails.targetSum || sum;
+            success = sum === targetSum;
+            description = `Exact sum ${targetSum}`;
+            // Higher multipliers for harder to achieve sums
+            const minSum = diceCount;
+            const maxSum = diceCount * diceSides;
+            const totalOutcomes = Math.pow(diceSides, diceCount);
+            // Approximate probability calculation
+            const probability = Math.max(0.001, 1.0 / (maxSum - minSum + 1));
+            multiplier = Math.min(50, Math.round((1.0 / probability) * 0.8));
+            break;
+            
+        case 'sum_range':
+            const midPoint = (diceCount + diceCount * diceSides) / 2;
+            const isHigh = sum > midPoint;
+            success = true; // Always succeeds, just determines high or low
+            description = isHigh ? 'High range' : 'Low range';
+            multiplier = 1.8; // Low risk, low reward
+            break;
+            
+        case 'all_same':
+            success = diceResults.every(die => die === diceResults[0]);
+            description = 'All dice same number';
+            // Probability is (diceSides) / (diceSides^diceCount)
+            const allSameProbability = diceSides / Math.pow(diceSides, diceCount);
+            multiplier = Math.round((1.0 / allSameProbability) * 0.8);
+            break;
+            
+        case 'contains_number':
+            const targetNumber = predictionDetails.targetNumber || 1;
+            success = diceResults.includes(targetNumber);
+            description = `Contains ${targetNumber}`;
+            // Probability that at least one die shows the target
+            const doesntContainProbability = Math.pow((diceSides - 1) / diceSides, diceCount);
+            const containsProbability = 1 - doesntContainProbability;
+            multiplier = Math.max(1.2, Math.round((1.0 / containsProbability) * 0.9 * 10) / 10);
+            break;
+            
+        default:
+            description = 'Unknown prediction';
+            break;
+    }
+    
+    return {
+        success: success,
+        multiplier: multiplier,
+        description: description
+    };
+}
+
+// Process games without database interaction
+function processSimpleGame(req, res, gameType, betAmount, currentBalance) {
+    const { action, choice, lines, playerHand, dealerHand, gameData } = req.body;
+    const newBalance = currentBalance - betAmount;
+    
+    console.log(`Processing ${gameType} game with bet ${betAmount}`);
+    
+    // For guest games, we use the same Java game engine but don't save to database
+    const gameDataForJava = {
+        betAmount: betAmount,
+        action: action,
+        choice: choice,
+        lines: lines || 1,
+        playerHand: playerHand || [],
+        dealerHand: dealerHand || [],
+        gameData: gameData || {}
+    };
+    
+    // Handle Node.js games (Par4, Pinata Party, Master's Dice) directly
+    if (gameType === 'par4') {
+        handlePar4Game(req.body, { mc_balance: currentBalance }, (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Game processing failed' });
+            }
+            res.json({
+                success: true,
+                gameType: gameType,
+                betAmount: betAmount,
+                payout: result.payout,
+                newBalance: result.newBalance,
+                experienceGained: 0,
+                gameData: result.data
+            });
+        });
+        return;
+    }
+    
+    if (gameType === 'pinataparty') {
+        handlePinataPartyGame(req.body, { mc_balance: currentBalance }, (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Game processing failed' });
+            }
+            res.json({
+                success: true,
+                gameType: gameType,
+                betAmount: betAmount,
+                payout: result.payout,
+                newBalance: result.newBalance,
+                experienceGained: 0,
+                gameData: result.data
+            });
+        });
+        return;
+    }
+    
+    if (gameType === 'mastersdice') {
+        handleMastersDiceGame(req.body, { mc_balance: currentBalance }, (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Game processing failed' });
+            }
+            res.json({
+                success: true,
+                gameType: gameType,
+                betAmount: betAmount,
+                payout: result.payout,
+                newBalance: result.newBalance,
+                experienceGained: 0,
+                gameData: result.data
+            });
+        });
+        return;
+    }
+    
+    // For Java games (blackjack, coinflip, starbound, blacksmith), call Java engine
+    const gameDataJson = JSON.stringify(gameDataForJava);
+    const javaCommand = `java -cp "./java/build:./java/lib/*" com.mastercredits.GameEngine "${gameType}" '${gameDataJson}'`;
+    
+    exec(javaCommand, { cwd: __dirname }, (error, stdout, stderr) => {
+        if (error) {
+            console.error('Java execution error:', error);
+            return res.status(500).json({ error: 'Game processing failed' });
+        }
+        
+        try {
+            const result = JSON.parse(stdout);
+            
+            if (result.success) {
+                // Calculate new balance for guest
+                const payout = result.payout || 0;
+                const finalBalance = newBalance + payout;
+                
+                res.json({
+                    success: true,
+                    gameType: gameType,
+                    betAmount: betAmount,
+                    payout: payout,
+                    newBalance: finalBalance,
+                    experienceGained: 0,
+                    gameData: result.data
+                });
+            } else {
+                res.status(500).json({ error: result.error || 'Game failed' });
+            }
+        } catch (parseError) {
+            console.error('Java result parsing error:', parseError);
+            res.status(500).json({ error: 'Game processing failed' });
+        }
+    });
+}
+
+app.post('/api/play-game', (req, res) => {
+    const { gameType, betAmount, action, choice, lines, playerHand, dealerHand, currentBalance } = req.body;
+    
+    // Debug logging
+    console.log('✅ Play-game request:', { gameType, betAmount, currentBalance, hasSession: !!req.session.userId });
     
     if (!gameType || !betAmount) {
         return res.status(400).json({ error: 'Game type and bet amount required' });
     }
     
-    db.get('SELECT mc_balance FROM mastercredits_data WHERE user_id = ?', [req.session.userId], (err, mcData) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        
-        if (!mcData) {
-            return res.status(500).json({ error: 'MasterCredits data not found' });
-        }
-        
-        if (betAmount > mcData.mc_balance) {
-            return res.status(400).json({ error: 'Insufficient balance' });
-        }
-        
-        const gameData = {
-            betAmount: betAmount,
-            action: action,
-            choice: choice,
-            lines: lines,
-            playerHand: playerHand,
-            dealerHand: dealerHand
+    // Use provided balance or default
+    const balance = parseFloat(currentBalance || 100000);
+    
+    if (betAmount > balance) {
+        return res.status(400).json({ error: 'Insufficient balance' });
+    }
+    
+    // Process game without database
+    processSimpleGame(req, res, gameType, betAmount, balance);
+});
+
+// Catch-all for missing API endpoints
+app.use('/api/*', (req, res) => {
+    console.log('❌ Missing API endpoint:', req.method, req.originalUrl);
+    res.status(404).json({ error: 'API endpoint not found' });
+});
+
+// Socket.IO for chat
+io.on('connection', (socket) => {
+    console.log('User connected to chat');
+
+    socket.on('join-chat', (data) => {
+        socket.username = data.username || 'Player';
+        socket.level = data.level || 1;
+    });
+
+    socket.on('chat-message', (data) => {
+        const message = {
+            username: socket.username || 'Player',
+            message: data.message,
+            timestamp: new Date()
         };
         
-        // Handle Par4 golf betting game directly in Node.js
-        if (gameType === 'par4') {
-            handlePar4Game(req.body, mcData, (err, result) => {
-                if (err) {
-                    console.error('Par4 game error:', err);
-                    return res.status(500).json({ error: 'Game processing failed' });
-                }
-                
-                console.log('Par4 game result:', result);
-                
-                // Update balance
-                const newBalance = result.newBalance;
-                
-                db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
-                    if (updateErr) {
-                        return res.status(500).json({ error: 'Failed to update balance' });
-                    }
-                    
-                    // Log game session
-                    if (result.betAmount > 0) {
-                        db.run('INSERT INTO game_sessions (user_id, game_name, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?, ?)',
-                            [req.session.userId, 'par4', 'golf_betting', result.betAmount, result.payout || 0, JSON.stringify(result.data)]);
-                    }
-                    
-                    // Add experience
-                    if (result.experienceGained > 0) {
-                        updateUserStats(req.session.userId, result.experienceGained, (statErr, statResult) => {
-                            if (!statErr && statResult.leveledUp) {
-                                result.levelUp = statResult;
-                            }
-                            
-                            res.json({
-                                success: true,
-                                gameType: 'par4',
-                                betAmount: result.betAmount,
-                                payout: result.payout,
-                                newBalance: newBalance,
-                                experienceGained: result.experienceGained,
-                                data: result.data,
-                                levelUp: result.levelUp
-                            });
-                        });
-                    } else {
-                        res.json({
-                            success: true,
-                            gameType: 'par4',
-                            betAmount: result.betAmount,
-                            payout: result.payout,
-                            newBalance: newBalance,
-                            experienceGained: result.experienceGained,
-                            data: result.data
-                        });
-                    }
-                });
-            });
-            return;
-        }
-        
-        // Handle Pinata Party game directly in Node.js
-        if (gameType === 'pinataparty') {
-            handlePinataPartyGame(req.body, mcData, (err, result) => {
-                if (err) {
-                    console.error('Pinata Party game error:', err);
-                    return res.status(500).json({ error: 'Game processing failed' });
-                }
-                
-                console.log('Pinata Party game result:', result);
-                
-                // Update balance
-                const newBalance = result.newBalance;
-                
-                db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
-                    if (updateErr) {
-                        return res.status(500).json({ error: 'Failed to update balance' });
-                    }
-                    
-                    // Log game session
-                    db.run('INSERT INTO game_sessions (user_id, game_name, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?, ?)',
-                        [req.session.userId, 'pinataparty', 'party_game', result.betAmount, result.payout || 0, JSON.stringify(result.data)]);
-                    
-                    // Add experience
-                    if (result.experienceGained > 0) {
-                        updateUserStats(req.session.userId, result.experienceGained, (statErr, statResult) => {
-                            if (!statErr && statResult.leveledUp) {
-                                result.levelUp = statResult;
-                            }
-                            
-                            res.json({
-                                success: true,
-                                gameType: 'pinataparty',
-                                betAmount: result.betAmount,
-                                payout: result.payout,
-                                newBalance: newBalance,
-                                experienceGained: result.experienceGained,
-                                data: result.data,
-                                levelUp: result.levelUp
-                            });
-                        });
-                    } else {
-                        res.json({
-                            success: true,
-                            gameType: 'pinataparty',
-                            betAmount: result.betAmount,
-                            payout: result.payout,
-                            newBalance: newBalance,
-                            experienceGained: result.experienceGained,
-                            data: result.data
-                        });
-                    }
-                });
-            });
-            return;
-        }
-        
-        console.log(`Playing ${gameType} with data:`, gameData);
-        callJavaGameEngine(gameType, gameData, (err, result) => {
-            if (err) {
-                console.error('Game engine error:', err);
-                return res.status(500).json({ error: 'Game processing failed' });
-            }
-            
-            console.log(`Game ${gameType} result:`, result);
-            
-            // For blackjack hit/stand and blacksmith sell, don't deduct bet again - it was already deducted on deal/forge
-            const shouldDeductBet = !(
-                (gameType === 'blackjack' && (action === 'hit' || action === 'stand')) ||
-                (gameType === 'blacksmith' && action === 'sell')
-            );
-            const newBalance = mcData.mc_balance - (shouldDeductBet ? betAmount : 0) + (result.payout || 0);
-            
-            db.run('UPDATE mastercredits_data SET mc_balance = ? WHERE user_id = ?', [newBalance, req.session.userId], (updateErr) => {
-                if (updateErr) {
-                    return res.status(500).json({ error: 'Failed to update balance' });
-                }
-                
-                // Only log game sessions for initial bets, not hit/stand actions
-                if (shouldDeductBet) {
-                    db.run('INSERT INTO game_sessions (user_id, game_name, game_type, bet_amount, payout, result) VALUES (?, ?, ?, ?, ?, ?)',
-                        [req.session.userId, 'mastercredits', gameType, betAmount, result.payout || 0, JSON.stringify(result.data)]);
-                }
-                
-                if (result.experienceGained > 0) {
-                    updateUserStats(req.session.userId, result.experienceGained, (statErr, statResult) => {
-                        if (!statErr && statResult.leveledUp) {
-                            result.levelUp = statResult;
-                        }
-                        
-                        res.json({
-                            success: true,
-                            gameData: result.data,
-                            payout: result.payout,
-                            newBalance: newBalance + (statResult?.levelUpReward || 0),
-                            experienceGained: result.experienceGained,
-                            levelUp: result.levelUp
-                        });
-                    });
-                } else {
-                    res.json({
-                        success: true,
-                        gameData: result.data,
-                        payout: result.payout,
-                        newBalance: newBalance,
-                        experienceGained: 0
-                    });
-                }
-            });
-        });
+        io.emit('chat-message', message);
     });
-});
 
-function callJavaGameEngine(gameType, gameData, callback) {
-    const isWindows = process.platform === 'win32';
-    const classpath = isWindows 
-        ? './java/build;./java/lib/*'
-        : './java/build:./java/lib/*';
-    
-    const javaProcess = spawn('java', [
-        '-cp', classpath,
-        'com.mastercredits.GameEngine',
-        gameType,
-        JSON.stringify(gameData)
-    ], {
-        timeout: 10000, // 10 second timeout
-        killSignal: 'SIGKILL'
-    });
-    
-    let result = '';
-    let error = '';
-    let isFinished = false;
-    
-    // Set a timeout to prevent hanging
-    const timeout = setTimeout(() => {
-        if (!isFinished) {
-            console.error('Java process timeout, killing...');
-            javaProcess.kill('SIGKILL');
-            callback(new Error('Java process timeout'));
-        }
-    }, 10000);
-    
-    javaProcess.stdout.on('data', (data) => {
-        result += data.toString();
-    });
-    
-    javaProcess.stderr.on('data', (data) => {
-        error += data.toString();
-    });
-    
-    javaProcess.on('error', (err) => {
-        if (!isFinished) {
-            isFinished = true;
-            clearTimeout(timeout);
-            console.error('Java process error:', err);
-            callback(new Error(`Java process failed to start: ${err.message}`));
-        }
-    });
-    
-    javaProcess.on('close', (code, signal) => {
-        if (!isFinished) {
-            isFinished = true;
-            clearTimeout(timeout);
-            
-            if (signal) {
-                callback(new Error(`Java process killed with signal ${signal}`));
-            } else if (code !== 0) {
-                callback(new Error(`Java process exited with code ${code}: ${error}`));
-            } else {
-                try {
-                    const parsed = JSON.parse(result.trim());
-                    callback(null, parsed);
-                } catch (e) {
-                    callback(new Error(`Failed to parse Java result: ${e.message}`));
-                }
-            }
-        }
-    });
-}
-
-// Talent Tree API endpoints
-app.get('/api/talents', requireAuth, (req, res) => {
-    db.all('SELECT talent_id, points FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err, talents) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to load talents' });
-        }
-        
-        const talentPoints = {};
-        talents.forEach(talent => {
-            talentPoints[talent.talent_id] = talent.points;
-        });
-        
-        res.json({ talents: talentPoints });
-    });
-});
-
-app.post('/api/talents/allocate', requireAuth, (req, res) => {
-    const { talentId, points } = req.body;
-    
-    if (!talentId || points === undefined || points < 0 || points > 5) {
-        return res.status(400).json({ error: 'Invalid talent allocation' });
-    }
-    
-    // Get user's current skill points and talents
-    db.get('SELECT skill_points FROM users WHERE id = ?', [req.session.userId], (err, user) => {
-        if (err || !user) {
-            return res.status(500).json({ error: 'User not found' });
-        }
-        
-        db.all('SELECT talent_id, points FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err, currentTalents) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to load current talents' });
-            }
-            
-            const talentPoints = {};
-            currentTalents.forEach(talent => {
-                talentPoints[talent.talent_id] = talent.points;
-            });
-            
-            const currentPoints = talentPoints[talentId] || 0;
-            const pointsDifference = points - currentPoints;
-            
-            if (pointsDifference > user.skill_points) {
-                return res.status(400).json({ error: 'Insufficient skill points' });
-            }
-            
-            // Check tier requirements
-            const tierRequirements = validateTierRequirements(talentId, points, talentPoints);
-            if (!tierRequirements.valid) {
-                return res.status(400).json({ error: tierRequirements.error });
-            }
-            
-            // Update or insert talent points
-            db.run('INSERT OR REPLACE INTO mastercredits_talents (user_id, talent_id, points) VALUES (?, ?, ?)', 
-                [req.session.userId, talentId, points], (err) => {
-                if (err) {
-                    return res.status(500).json({ error: 'Failed to update talent' });
-                }
-                
-                // Update user skill points
-                const newSkillPoints = user.skill_points - pointsDifference;
-                db.run('UPDATE users SET skill_points = ? WHERE id = ?', [newSkillPoints, req.session.userId], (err) => {
-                    if (err) {
-                        return res.status(500).json({ error: 'Failed to update skill points' });
-                    }
-                    
-                    res.json({ success: true, newSkillPoints, talentId, points });
-                });
-            });
-        });
-    });
-});
-
-function validateTierRequirements(talentId, points, currentTalents) {
-    const talentTiers = {
-        'pet-emojis': 1,
-        'lore-mastery': 1,
-        'lucky-charm': 1,
-        'font-styles': 2,
-        'stardom': 2,
-        'profile-mastery': 2,
-        'lucky': 2,
-        'spooky': 2,
-        'charming': 2,
-        'blessing-of-fortune': 3,
-        'evasion': 3
-    };
-    
-    const talentTier = talentTiers[talentId];
-    if (!talentTier) {
-        return { valid: false, error: 'Unknown talent' };
-    }
-    
-    // Tier 1 talents are always available
-    if (talentTier === 1) {
-        return { valid: true };
-    }
-    
-    // Check if previous tier has enough points
-    const tier1Talents = ['pet-emojis', 'lore-mastery', 'lucky-charm'];
-    const tier2Talents = ['font-styles', 'stardom', 'profile-mastery', 'lucky', 'spooky', 'charming'];
-    
-    if (talentTier === 2) {
-        const tier1Points = tier1Talents.reduce((sum, talent) => sum + (currentTalents[talent] || 0), 0);
-        if (tier1Points < 5) {
-            return { valid: false, error: 'Need 5 points in Tier 1 to unlock Tier 2' };
-        }
-    }
-    
-    if (talentTier === 3) {
-        const tier2Points = tier2Talents.reduce((sum, talent) => sum + (currentTalents[talent] || 0), 0);
-        if (tier2Points < 5) {
-            return { valid: false, error: 'Need 5 points in Tier 2 to unlock Tier 3' };
-        }
-        
-        // Blessing of Fortune requires Lucky 5/5
-        if (talentId === 'blessing-of-fortune' && (currentTalents['lucky'] || 0) < 5) {
-            return { valid: false, error: 'Requires Lucky 5/5' };
-        }
-    }
-    
-    return { valid: true };
-}
-
-app.post('/api/talents/reset', requireAuth, (req, res) => {
-    // Get total points spent
-    db.all('SELECT SUM(points) as totalPoints FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to calculate reset' });
-        }
-        
-        const pointsToRefund = result[0]?.totalPoints || 0;
-        
-        // Clear all talents and refund skill points
-        db.run('DELETE FROM mastercredits_talents WHERE user_id = ?', [req.session.userId], (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to reset talents' });
-            }
-            
-            db.run('UPDATE users SET skill_points = skill_points + ? WHERE id = ?', [pointsToRefund, req.session.userId], (err) => {
-                if (err) {
-                    return res.status(500).json({ error: 'Failed to refund points' });
-                }
-                
-                res.json({ success: true, pointsRefunded: pointsToRefund });
-            });
-        });
-    });
-});
-
-cron.schedule('0 2 * * *', () => {
-    const backupDir = './backups';
-    if (!fs.existsSync(backupDir)) {
-        fs.mkdirSync(backupDir);
-    }
-    
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFile = `${backupDir}/backup-${timestamp}.db`;
-    
-    fs.copyFileSync('./database/mastercredits.db', backupFile);
-    
-    db.run('UPDATE admin_settings SET last_backup = CURRENT_TIMESTAMP WHERE id = 1');
-    
-    console.log(`Database backup created: ${backupFile}`);
-});
-
-io.on('connection', (socket) => {
-    console.log('User connected');
-    
-    socket.on('join-chat', (userData) => {
-        socket.userData = userData;
-    });
-    
-    socket.on('chat-message', (data) => {
-        if (!socket.userData) return;
-        
-        const message = data.message.trim();
-        if (!message || message.length > 200) return;
-        
-        const profanityFilter = ['fuck', 'shit', 'damn', 'bitch', 'ass'];
-        const hasProfanity = profanityFilter.some(word => 
-            message.toLowerCase().includes(word.toLowerCase())
-        );
-        
-        if (hasProfanity) {
-            socket.emit('chat-error', 'Message contains inappropriate content');
-            return;
-        }
-        
-        db.run('INSERT INTO chat_messages (user_id, username, message) VALUES (?, ?, ?)',
-            [socket.userData.userId, socket.userData.username, message]);
-        
-        io.emit('chat-message', {
-            username: socket.userData.username,
-            message: message,
-            timestamp: new Date().toISOString(),
-            level: socket.userData.level || 1
-        });
-    });
-    
     socket.on('disconnect', () => {
-        console.log('User disconnected');
+        console.log('User disconnected from chat');
     });
 });
 
-if (!fs.existsSync('./database')) {
-    fs.mkdirSync('./database');
-}
+// File uploads directory
 if (!fs.existsSync('./uploads')) {
     fs.mkdirSync('./uploads');
 }
@@ -1361,59 +968,16 @@ server.listen(PORT, () => {
 });
 
 // Graceful shutdown handling
-function gracefulShutdown(signal) {
-    console.log(`\n${signal} received. Starting graceful shutdown...`);
-    
-    // Close the HTTP server
-    server.close((err) => {
-        if (err) {
-            console.error('Error closing HTTP server:', err);
-            process.exit(1);
-        }
+process.on('SIGINT', () => {
+    console.log('Received SIGINT, starting graceful shutdown...');
+    server.close(() => {
         console.log('HTTP server closed');
-        
-        // Close database connection
-        if (db) {
-            db.close((err) => {
-                if (err) {
-                    console.error('Error closing database:', err);
-                    process.exit(1);
-                }
-                console.log('Database connection closed');
-                
-                // Close all socket connections
-                io.close(() => {
-                    console.log('Socket.IO connections closed');
-                    console.log('Graceful shutdown complete');
-                    process.exit(0);
-                });
-            });
-        } else {
+        io.close(() => {
+            console.log('Socket.IO connections closed');
+            console.log('Graceful shutdown complete');
             process.exit(0);
-        }
+        });
     });
-    
-    // Force exit after 10 seconds if graceful shutdown fails
-    setTimeout(() => {
-        console.error('Graceful shutdown timed out, forcing exit');
-        process.exit(1);
-    }, 10000);
-}
-
-// Handle various shutdown signals
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // nodemon restart
-
-// Handle uncaught exceptions and rejections
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-    gracefulShutdown('UNCAUGHT_EXCEPTION');
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    gracefulShutdown('UNHANDLED_REJECTION');
 });
 
 module.exports = app;

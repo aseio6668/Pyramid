@@ -1,11 +1,30 @@
 // Pinata Party Game Engine
 class PinataPartyGame {
     constructor() {
+        this.canvas = document.getElementById('pinataCanvas');
+        this.ctx = this.canvas.getContext('2d');
         this.currentUser = null;
         this.selectedPinataType = null;
         this.betAmount = 2000;
         this.prizes = [];
         this.totalPrizeValue = 0;
+        
+        // Animation properties
+        this.isSwinging = false;
+        this.swingAngle = 0;
+        this.pinataShaking = 0;
+        this.confettiParticles = [];
+        this.isGameActive = false;
+        this.pinataIsBroken = false;
+        this.brokenPinataType = null;
+        
+        // Initialize canvas if available
+        if (this.canvas && this.ctx) {
+            this.initializeCanvas();
+        }
+        
+        // Animation frame ID for cleanup
+        this.animationFrame = null;
         
         // Prize database with themed items and realistic values
         this.prizeDatabase = {
@@ -67,6 +86,272 @@ class PinataPartyGame {
         };
         
         this.init();
+    }
+    
+    initializeCanvas() {
+        // Set up canvas properties
+        this.canvas.width = 600;
+        this.canvas.height = 400;
+        this.ctx.imageSmoothingEnabled = true;
+        
+        // Initialize pinata position
+        this.pinataX = this.canvas.width / 2;
+        this.pinataY = this.canvas.height / 3;
+        this.pinataSize = 80;
+        
+        // Initialize bat position
+        this.batX = this.canvas.width / 2 + 100;
+        this.batY = this.canvas.height / 2;
+        this.batAngle = -45;
+        
+        // Clear canvas
+        this.clearCanvas();
+    }
+    
+    clearCanvas() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw background gradient
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        gradient.addColorStop(0, '#FF6B9D');
+        gradient.addColorStop(0.5, '#C44569');
+        gradient.addColorStop(1, '#8E44AD');
+        
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Add party decorations
+        this.drawPartyDecorations();
+    }
+    
+    drawPartyDecorations() {
+        // Draw streamers
+        this.ctx.strokeStyle = '#FFD700';
+        this.ctx.lineWidth = 3;
+        this.ctx.globalAlpha = 0.6;
+        
+        for (let i = 0; i < 5; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(i * 150, 0);
+            this.ctx.quadraticCurveTo(i * 150 + 75, 50, i * 150 + 150, 0);
+            this.ctx.stroke();
+        }
+        
+        this.ctx.globalAlpha = 1;
+    }
+    
+    drawPinata() {
+        const pinataInfo = this.pinataTypes[this.selectedPinataType];
+        if (!pinataInfo || this.pinataIsBroken) return;
+        
+        // Apply shaking effect if pinata is being hit
+        let shakeX = 0;
+        let shakeY = 0;
+        if (this.pinataShaking > 0) {
+            shakeX = (Math.random() - 0.5) * this.pinataShaking * 2;
+            shakeY = (Math.random() - 0.5) * this.pinataShaking * 2;
+            this.pinataShaking *= 0.9; // Reduce shaking over time
+        }
+        
+        const x = this.pinataX + shakeX;
+        const y = this.pinataY + shakeY;
+        
+        // Draw pinata string
+        this.ctx.strokeStyle = '#8B4513';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, 0);
+        this.ctx.lineTo(x, y - this.pinataSize / 2);
+        this.ctx.stroke();
+        
+        // Draw pinata emoji (scaled up)
+        this.ctx.save();
+        this.ctx.font = `${this.pinataSize}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
+        // Add glow effect
+        this.ctx.shadowColor = '#FFD700';
+        this.ctx.shadowBlur = 10;
+        this.ctx.fillText(pinataInfo.icon, x, y);
+        
+        this.ctx.restore();
+    }
+    
+    drawBat() {
+        this.ctx.save();
+        
+        // Translate to bat pivot point
+        this.ctx.translate(this.batX, this.batY);
+        this.ctx.rotate((this.batAngle * Math.PI) / 180);
+        
+        // Draw bat handle
+        this.ctx.fillStyle = '#8B4513';
+        this.ctx.fillRect(-5, 0, 10, 60);
+        
+        // Draw bat head
+        this.ctx.fillStyle = '#D2691E';
+        this.ctx.fillRect(-15, -20, 30, 20);
+        
+        // Add bat emoji for fun
+        this.ctx.font = '30px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🏏', 0, -10);
+        
+        this.ctx.restore();
+    }
+    
+    animateBatSwing() {
+        return new Promise(resolve => {
+            const startAngle = -45;
+            const endAngle = 45;
+            const duration = 800;
+            const startTime = Date.now();
+            
+            const swing = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Use easing function for realistic swing
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                this.batAngle = startAngle + (endAngle - startAngle) * easeOut;
+                
+                if (progress >= 0.8 && this.pinataShaking === 0) {
+                    // Start pinata shaking when bat is near
+                    this.pinataShaking = 20;
+                }
+                
+                this.clearCanvas();
+                this.drawPinata();
+                this.drawBat();
+                
+                if (progress < 1) {
+                    this.animationFrame = requestAnimationFrame(swing);
+                } else {
+                    // Reset bat position
+                    this.batAngle = startAngle;
+                    resolve();
+                }
+            };
+            
+            swing();
+        });
+    }
+    
+    createCanvasConfetti() {
+        this.confettiParticles = [];
+        
+        // Create confetti particles
+        for (let i = 0; i < 100; i++) {
+            this.confettiParticles.push({
+                x: this.pinataX + (Math.random() - 0.5) * 100,
+                y: this.pinataY + (Math.random() - 0.5) * 50,
+                vx: (Math.random() - 0.5) * 10,
+                vy: Math.random() * -8 - 2,
+                gravity: 0.3,
+                color: ['#FF6B9D', '#C44569', '#F8B500', '#40E0D0', '#9B59B6', '#FFD700'][Math.floor(Math.random() * 6)],
+                size: Math.random() * 6 + 2,
+                rotation: Math.random() * 360,
+                rotationSpeed: (Math.random() - 0.5) * 10,
+                life: 1.0
+            });
+        }
+        
+        this.animateConfetti();
+    }
+    
+    animateConfetti() {
+        const animate = () => {
+            this.clearCanvas();
+            
+            // Update and draw confetti
+            for (let i = this.confettiParticles.length - 1; i >= 0; i--) {
+                const particle = this.confettiParticles[i];
+                
+                // Update physics
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += particle.gravity;
+                particle.rotation += particle.rotationSpeed;
+                particle.life -= 0.01;
+                
+                // Remove dead particles
+                if (particle.life <= 0 || particle.y > this.canvas.height + 50) {
+                    this.confettiParticles.splice(i, 1);
+                    continue;
+                }
+                
+                // Draw particle
+                this.ctx.save();
+                this.ctx.translate(particle.x, particle.y);
+                this.ctx.rotate((particle.rotation * Math.PI) / 180);
+                this.ctx.globalAlpha = particle.life;
+                this.ctx.fillStyle = particle.color;
+                this.ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+                this.ctx.restore();
+            }
+            
+            // Draw pinata and bat
+            this.drawPinata();
+            this.drawBat();
+            
+            // Continue animation if particles exist
+            if (this.confettiParticles.length > 0) {
+                this.animationFrame = requestAnimationFrame(animate);
+            }
+        };
+        
+        animate();
+    }
+    
+    async canvasSwingAnimation() {
+        return new Promise(resolve => {
+            const actionStatus = document.getElementById('actionStatus');
+            const swingCounter = document.getElementById('swingCounter');
+            
+            let swings = 0;
+            const totalSwings = 2 + Math.floor(Math.random() * 3); // 2-4 swings
+            
+            const performSwing = async () => {
+                swings++;
+                swingCounter.textContent = `Swings: ${swings}`;
+                actionStatus.textContent = `Swing ${swings}!`;
+                
+                // Animate the bat swing on canvas
+                await this.animateBatSwing();
+                
+                if (swings >= totalSwings) {
+                    actionStatus.textContent = 'Final swing!';
+                    setTimeout(resolve, 1000);
+                } else {
+                    setTimeout(performSwing, 400);
+                }
+            };
+            
+            performSwing();
+        });
+    }
+    
+    async canvasBreakPinata() {
+        return new Promise(resolve => {
+            const actionStatus = document.getElementById('actionStatus');
+            
+            actionStatus.textContent = 'CRACK!';
+            
+            // Create explosion effect
+            this.createCanvasConfetti();
+            
+            // Store the pinata type for restoring later
+            this.brokenPinataType = this.selectedPinataType;
+            
+            // Mark pinata as broken for rendering
+            this.pinataIsBroken = true;
+            
+            setTimeout(() => {
+                actionStatus.textContent = 'Pinata exploded!';
+                setTimeout(resolve, 800);
+            }, 500);
+        });
     }
     
     init() {
@@ -259,17 +544,17 @@ class PinataPartyGame {
         document.getElementById('bettingSection').classList.add('hidden');
         document.getElementById('gamePlayArea').classList.remove('hidden');
         
-        // Set up pinata display
-        const pinataDisplay = document.getElementById('pinataDisplay');
-        const pinataInfo = this.pinataTypes[this.selectedPinataType];
-        pinataDisplay.textContent = pinataInfo.icon;
+        // Initialize canvas scene
+        this.clearCanvas();
+        this.drawPinata();
+        this.drawBat();
         
         // Start party atmosphere
         this.createConfetti();
         
-        // Animation sequence
-        await this.swingAnimation();
-        await this.breakPinata();
+        // Animation sequence with canvas
+        await this.canvasSwingAnimation();
+        await this.canvasBreakPinata();
         this.showPrizes();
     }
     
@@ -424,9 +709,25 @@ class PinataPartyGame {
         this.selectedPinataType = null;
         this.prizes = [];
         this.totalPrizeValue = 0;
+        this.pinataIsBroken = false;
+        this.brokenPinataType = null;
+        this.pinataShaking = 0;
+        this.confettiParticles = [];
+        
+        // Cancel any ongoing animations
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+        
+        // Clear canvas
+        if (this.canvas && this.ctx) {
+            this.clearCanvas();
+        }
         
         // Reset UI
         document.getElementById('prizeSection').classList.add('hidden');
+        document.getElementById('gamePlayArea').classList.add('hidden');
         document.getElementById('bettingSection').classList.remove('hidden');
         
         // Clear pinata selection

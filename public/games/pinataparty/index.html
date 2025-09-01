@@ -33,10 +33,6 @@
                             <button class="logout-btn" onclick="window.PlatformAPI.logout()">Logout</button>
                         </div>
                     </div>
-                    <div id="authSection" class="auth-section">
-                        <button class="login-btn" onclick="window.PlatformAPI.showLogin()">Login</button>
-                        <button class="register-btn" onclick="window.PlatformAPI.showRegister()">Register</button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -139,7 +135,7 @@
                 
                 <!-- Pinata Display -->
                 <div class="pinata-stage">
-                    <div class="hanging-rope"></div>
+                    <canvas id="pinataCanvas" width="600" height="400"></canvas>
                     <div id="pinataDisplay" class="pinata-display">
                         <!-- Pinata will be rendered here -->
                     </div>

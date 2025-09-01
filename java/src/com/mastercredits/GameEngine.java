@@ -213,8 +213,14 @@ public class GameEngine {
         result.gameType = "starbound";
         result.betAmount = betAmount;
         
-        String[] symbols = {"DOG", "ROCKET", "STAR", "SHINE", "UFO", "PAW", "FIRE", "GEM"};
-        double[] payouts = {50, 25, 15, 10, 8, 5, 3, 2};
+        // Expanded symbols with more variety
+        String[] symbols = {"DOG", "ROCKET", "STAR", "SHINE", "UFO", "PAW", "FIRE", "GEM", "BONE", "PLANET", "COMET", "ASTEROID"};
+        
+        // Reduced payouts for 3+ consecutive symbols
+        double[] payouts3Plus = {25, 15, 10, 8, 6, 4, 3, 2, 2, 1.5, 1.2, 1};
+        
+        // New: Small payouts for 2 consecutive symbols (20% chance)
+        double[] payouts2 = {2, 1.5, 1.2, 1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.2};
         
         List<List<String>> reels = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -249,18 +255,61 @@ public class GameEngine {
                 }
             }
             
-            if (consecutiveCount >= 3) {
-                int symbolIndex = Arrays.asList(symbols).indexOf(firstSymbol);
+            int symbolIndex = Arrays.asList(symbols).indexOf(firstSymbol);
+            
+            // 3+ consecutive symbols - higher payouts
+            if (consecutiveCount >= 3 && symbolIndex != -1) {
+                double linePayout = (betAmount / numLines) * payouts3Plus[symbolIndex] * (consecutiveCount - 2);
+                totalPayout += linePayout;
+                
+                Map<String, Object> winLine = new HashMap<>();
+                winLine.put("line", line);
+                winLine.put("symbol", firstSymbol);
+                winLine.put("count", consecutiveCount);
+                winLine.put("payout", linePayout);
+                winLine.put("type", "consecutive");
+                winningLines.add(winLine);
+            }
+            // NEW: 2 consecutive symbols - small payouts (more frequent wins)
+            else if (consecutiveCount == 2 && symbolIndex != -1) {
+                double linePayout = (betAmount / numLines) * payouts2[symbolIndex];
+                totalPayout += linePayout;
+                
+                Map<String, Object> winLine = new HashMap<>();
+                winLine.put("line", line);
+                winLine.put("symbol", firstSymbol);
+                winLine.put("count", consecutiveCount);
+                winLine.put("payout", linePayout);
+                winLine.put("type", "pair");
+                winningLines.add(winLine);
+            }
+        }
+        
+        // NEW: Scatter bonuses - any 3+ of same symbol anywhere on reels
+        Map<String, Integer> scatterCounts = new HashMap<>();
+        for (List<String> reel : reels) {
+            for (String symbol : reel) {
+                scatterCounts.put(symbol, scatterCounts.getOrDefault(symbol, 0) + 1);
+            }
+        }
+        
+        for (Map.Entry<String, Integer> entry : scatterCounts.entrySet()) {
+            String symbol = entry.getKey();
+            int count = entry.getValue();
+            
+            if (count >= 6) { // 6+ scattered symbols
+                int symbolIndex = Arrays.asList(symbols).indexOf(symbol);
                 if (symbolIndex != -1) {
-                    double linePayout = (betAmount / numLines) * payouts[symbolIndex] * (consecutiveCount - 2);
-                    totalPayout += linePayout;
+                    double scatterPayout = betAmount * 0.5 * (count - 5); // Modest scatter bonus
+                    totalPayout += scatterPayout;
                     
-                    Map<String, Object> winLine = new HashMap<>();
-                    winLine.put("line", line);
-                    winLine.put("symbol", firstSymbol);
-                    winLine.put("count", consecutiveCount);
-                    winLine.put("payout", linePayout);
-                    winningLines.add(winLine);
+                    Map<String, Object> scatterWin = new HashMap<>();
+                    scatterWin.put("line", -1);
+                    scatterWin.put("symbol", symbol);
+                    scatterWin.put("count", count);
+                    scatterWin.put("payout", scatterPayout);
+                    scatterWin.put("type", "scatter");
+                    winningLines.add(scatterWin);
                 }
             }
         }
